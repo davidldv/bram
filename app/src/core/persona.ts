@@ -5,7 +5,7 @@ export const DEFAULT_PERSONA = "Zayn";
 
 export async function getPersonaName(prefs: PreferenceRepository): Promise<string> {
   const v = await prefs.get(PERSONA_KEY);
-  return v ?? DEFAULT_PERSONA;
+  return v?.trim() || DEFAULT_PERSONA;
 }
 
 export async function setPersonaName(

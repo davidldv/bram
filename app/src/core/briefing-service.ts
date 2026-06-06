@@ -24,7 +24,9 @@ export async function morningBriefing(deps: {
   const enabledTopics = (await deps.topics.list())
     .filter((t) => t.enabled)
     .map((t) => t.label);
-  const headlines = await deps.api.news(enabledTopics);
+  // With no topics enabled, skip the news call rather than fetch generic
+  // "top" headlines the user didn't ask for.
+  const headlines = enabledTopics.length ? await deps.api.news(enabledTopics) : [];
 
   const { startMs, endMs } = dayRange(deps.now);
   const plans = await deps.plans.listForRange(startMs, endMs);

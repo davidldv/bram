@@ -39,4 +39,10 @@ describe("createBramApi", () => {
     const api = createBramApi({ baseUrl: "http://host", fetchFn: fetchFn as unknown as typeof fetch });
     await expect(api.chat("s", [])).rejects.toThrow(/chat failed: 502/);
   });
+
+  it("throws when news returns non-ok", async () => {
+    const fetchFn = jest.fn(async (..._args: Parameters<typeof fetch>) => fakeResponse({}, false, 503));
+    const api = createBramApi({ baseUrl: "http://host", fetchFn: fetchFn as unknown as typeof fetch });
+    await expect(api.news(["tech"])).rejects.toThrow(/news failed: 503/);
+  });
 });

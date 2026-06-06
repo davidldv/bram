@@ -52,4 +52,22 @@ describe("morningBriefing", () => {
     expect(userContent).toContain("N");
     expect(chatArgs[0]).toContain("Zayn");
   });
+
+  it("skips the news call when no topics are enabled", async () => {
+    const now = new Date(2026, 5, 5, 8, 0).getTime();
+    const api: BramApi = {
+      news: jest.fn(async () => [{ title: "N", source: "S", url: "http://a" }]),
+      chat: jest.fn(async () => "Morning."),
+    };
+    const plans = createMemoryPlanRepository();
+    const topics = createMemoryTopicRepository([{ id: "tech", label: "tech", enabled: false }]);
+    const prefs = createMemoryPreferenceRepository();
+
+    const reply = await morningBriefing({ api, plans, topics, prefs, now });
+
+    expect(reply).toBe("Morning.");
+    expect(api.news as jest.Mock).not.toHaveBeenCalled();
+    const userContent = (api.chat as jest.Mock).mock.calls[0][1][0].content as string;
+    expect(userContent).toContain("(no headlines)");
+  });
 });
