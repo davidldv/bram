@@ -4,6 +4,7 @@
   "main": "index.ts",
   "dependencies": {
     "expo": "~56.0.9",
+    "expo-constants": "^56.0.17",
     "expo-crypto": "~56.0.4",
     "expo-speech": "~56.0.3",
     "expo-speech-recognition": "^56.0.1",
