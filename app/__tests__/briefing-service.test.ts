@@ -1,0 +1,55 @@
+import { morningBriefing, dayRange } from "../src/core/briefing-service";
+import {
+  createMemoryPlanRepository,
+  createMemoryPreferenceRepository,
+  createMemoryTopicRepository,
+} from "../src/core/memory-repository";
+import type { BramApi } from "../src/core/api";
+import type { Plan } from "../src/core/types";
+
+function plan(over: Partial<Plan> = {}): Plan {
+  return { id: "1", type: "task", title: "thing", scheduledAt: null, createdAt: 0, done: false, ...over };
+}
+
+describe("dayRange", () => {
+  it("spans local midnight to next midnight", () => {
+    const now = new Date(2026, 5, 5, 13, 0).getTime();
+    const { startMs, endMs } = dayRange(now);
+    expect(startMs).toBe(new Date(2026, 5, 5, 0, 0, 0, 0).getTime());
+    expect(endMs).toBe(startMs + 24 * 60 * 60 * 1000);
+  });
+});
+
+describe("morningBriefing", () => {
+  it("requests only enabled topics, briefs on today's plans, returns the reply", async () => {
+    const now = new Date(2026, 5, 5, 8, 0).getTime();
+    const todayAt = (h: number) => new Date(2026, 5, 5, h, 0).getTime();
+    const yesterday = new Date(2026, 5, 4, 9, 0).getTime();
+
+    const api: BramApi = {
+      news: jest.fn(async () => [{ title: "N", source: "S", url: "http://a" }]),
+      chat: jest.fn(async () => "Good morning."),
+    };
+    const plans = createMemoryPlanRepository([
+      plan({ id: "today", title: "standup", scheduledAt: todayAt(9) }),
+      plan({ id: "old", title: "old thing", scheduledAt: yesterday }),
+    ]);
+    const topics = createMemoryTopicRepository([
+      { id: "tech", label: "tech", enabled: true },
+      { id: "sports", label: "sports", enabled: false },
+    ]);
+    const prefs = createMemoryPreferenceRepository();
+
+    const reply = await morningBriefing({ api, plans, topics, prefs, now });
+
+    expect(reply).toBe("Good morning.");
+    expect((api.news as jest.Mock).mock.calls[0][0]).toEqual(["tech"]);
+
+    const chatArgs = (api.chat as jest.Mock).mock.calls[0];
+    const userContent = chatArgs[1][0].content as string;
+    expect(userContent).toContain("standup");
+    expect(userContent).not.toContain("old thing");
+    expect(userContent).toContain("N");
+    expect(chatArgs[0]).toContain("Zayn");
+  });
+});
