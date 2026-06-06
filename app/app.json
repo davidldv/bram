@@ -20,6 +20,20 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-sqlite",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Allow Bram to use the microphone to hear you.",
+          "speechRecognitionPermission": "Allow Bram to convert your speech to text.",
+          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+        }
+      ]
+    ],
+    "extra": {
+      "backendBaseUrl": "http://localhost:3000"
     }
   }
 }
