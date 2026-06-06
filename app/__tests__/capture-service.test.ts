@@ -1,0 +1,45 @@
+import { capturePlans } from "../src/core/capture-service";
+import { createMemoryPlanRepository } from "../src/core/memory-repository";
+import type { BramApi } from "../src/core/api";
+
+function fakeApi(reply: string): BramApi {
+  return {
+    chat: jest.fn(async () => reply),
+    news: jest.fn(async () => []),
+  };
+}
+
+describe("capturePlans", () => {
+  it("parses the model reply and stores the plans", async () => {
+    const reply = JSON.stringify([{ type: "reminder", title: "gym", scheduledAt: null }]);
+    const api = fakeApi(reply);
+    const repo = createMemoryPlanRepository();
+    let counter = 0;
+
+    const result = await capturePlans(
+      { api, repo, now: 1000, newId: () => `id-${++counter}` },
+      "remind me to gym"
+    );
+
+    expect(result.map((p) => p.title)).toEqual(["gym"]);
+    expect((await repo.list()).map((p) => p.title)).toEqual(["gym"]);
+  });
+
+  it("sends the utterance as the user message to chat", async () => {
+    const api = fakeApi("[]");
+    const repo = createMemoryPlanRepository();
+
+    await capturePlans({ api, repo, now: 1000, newId: () => "x" }, "lunch tomorrow");
+
+    const call = (api.chat as jest.Mock).mock.calls[0];
+    expect(call[1]).toEqual([{ role: "user", content: "lunch tomorrow" }]);
+  });
+
+  it("stores nothing when the model returns an empty array", async () => {
+    const api = fakeApi("[]");
+    const repo = createMemoryPlanRepository();
+    const result = await capturePlans({ api, repo, now: 1000, newId: () => "x" }, "hello");
+    expect(result).toEqual([]);
+    expect(await repo.list()).toEqual([]);
+  });
+});
