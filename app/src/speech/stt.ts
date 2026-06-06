@@ -29,6 +29,10 @@ export function createVoiceCapture(): VoiceCapture {
     resultSub = undefined;
     endSub = undefined;
     timer = undefined;
+    // Privacy: always tear down the recognizer so the mic never stays hot —
+    // every termination path (final result, end event, watchdog) runs cleanup.
+    // stop() is idempotent, so calling it after a natural `end` is harmless.
+    ExpoSpeechRecognitionModule.stop();
   };
 
   return {
