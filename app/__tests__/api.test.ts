@@ -6,7 +6,7 @@ function fakeResponse(body: unknown, ok = true, status = 200): Response {
 
 describe("createBramApi", () => {
   it("POSTs /chat and returns the reply", async () => {
-    const fetchFn = jest.fn(async () => fakeResponse({ reply: "hi there" }));
+    const fetchFn = jest.fn(async (..._args: Parameters<typeof fetch>) => fakeResponse({ reply: "hi there" }));
     const api = createBramApi({ baseUrl: "http://host/", fetchFn: fetchFn as unknown as typeof fetch });
 
     const reply = await api.chat("be brief", [{ role: "user", content: "hi" }]);
@@ -23,7 +23,7 @@ describe("createBramApi", () => {
 
   it("POSTs /news and returns headlines", async () => {
     const headlines = [{ title: "T", source: "S", url: "http://a" }];
-    const fetchFn = jest.fn(async () => fakeResponse({ headlines }));
+    const fetchFn = jest.fn(async (..._args: Parameters<typeof fetch>) => fakeResponse({ headlines }));
     const api = createBramApi({ baseUrl: "http://host", fetchFn: fetchFn as unknown as typeof fetch });
 
     const result = await api.news(["tech"]);
@@ -35,7 +35,7 @@ describe("createBramApi", () => {
   });
 
   it("throws when chat returns non-ok", async () => {
-    const fetchFn = jest.fn(async () => fakeResponse({}, false, 502));
+    const fetchFn = jest.fn(async (..._args: Parameters<typeof fetch>) => fakeResponse({}, false, 502));
     const api = createBramApi({ baseUrl: "http://host", fetchFn: fetchFn as unknown as typeof fetch });
     await expect(api.chat("s", [])).rejects.toThrow(/chat failed: 502/);
   });
