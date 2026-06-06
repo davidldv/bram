@@ -24,8 +24,8 @@ export function createNewsClient(opts: {
       const query = topics.length ? topics.join(" OR ") : "top";
       const url =
         `https://newsapi.org/v2/top-headlines?q=${encodeURIComponent(query)}` +
-        `&pageSize=5&apiKey=${opts.apiKey}`;
-      const res = await fetchFn(url);
+        `&pageSize=5`;
+      const res = await fetchFn(url, { headers: { "X-Api-Key": opts.apiKey } });
       if (!res.ok) throw new Error(`news provider error: ${res.status}`);
       const data = (await res.json()) as { articles?: ProviderArticle[] };
       const articles = Array.isArray(data.articles) ? data.articles : [];

@@ -37,4 +37,15 @@ describe("createNewsClient", () => {
     const client = createNewsClient({ apiKey: "k", fetchFn: fetchFn as unknown as typeof fetch });
     await expect(client.fetchHeadlines(["tech"])).resolves.toEqual([]);
   });
+
+  it("sends the api key as a header, never in the url", async () => {
+    const fetchFn = vi.fn(async () => fakeResponse({ articles: [] }));
+    const client = createNewsClient({ apiKey: "secret", fetchFn: fetchFn as unknown as typeof fetch });
+
+    await client.fetchHeadlines(["tech"]);
+
+    const [calledUrl, init] = fetchFn.mock.calls[0];
+    expect(calledUrl).not.toContain("secret");
+    expect((init as RequestInit).headers).toEqual({ "X-Api-Key": "secret" });
+  });
 });
