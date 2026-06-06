@@ -1,0 +1,4 @@
+# pnpm reads build-script allow-listing here. Only dependencies set to true may
+# run install lifecycle scripts; everything else is blocked (supply-chain hardening).
+allowBuilds:
+  esbuild: true

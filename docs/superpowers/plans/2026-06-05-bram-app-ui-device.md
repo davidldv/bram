@@ -16,6 +16,18 @@
 
 All commands run from `C:\Users\Alejandro\Dev\bram\app` unless stated. Commit commands run from the repo root `C:\Users\Alejandro\Dev\bram`.
 
+## Package manager: pnpm
+
+This project uses **pnpm** (not npm). The app is its own pnpm project root (`app/pnpm-workspace.yaml`, `app/.npmrc` with `node-linker=hoisted` for Metro). Command mapping used throughout this plan:
+
+- `pnpm test` (run all) / `pnpm test -- __tests__/x.test.ts` (single file)
+- `pnpm typecheck`
+- `pnpm expo install <pkg>` (version-matched Expo installs)
+- `pnpm add -D <pkg>` (dev deps)
+- `pnpm exec expo <cmd>` for `prebuild`/`run:ios`/`run:android`
+- Commit `pnpm-lock.yaml` (there is no `package-lock.json`)
+- pnpm blocks dependency build scripts by default. If install reports `Ignored build scripts`, decide each in `app/pnpm-workspace.yaml` under `allowBuilds:` (`true` to allow, `false` to keep blocked) — do not blanket-approve.
+
 ---
 
 ## File Structure (this plan)
@@ -62,16 +74,16 @@ app/
 - [ ] **Step 1: Install Expo native modules (version-matched to SDK 56)**
 
 ```bash
-npx expo install expo-sqlite expo-speech expo-crypto expo-speech-recognition
+pnpm expo install expo-sqlite expo-speech expo-crypto expo-speech-recognition
 ```
 
-Expected: installs the four packages at SDK-56-compatible versions.
+Expected: installs the four packages at SDK-56-compatible versions. If pnpm reports `Ignored build scripts`, decide each in `app/pnpm-workspace.yaml` `allowBuilds:` (see the Package manager note above), then re-run `pnpm install`.
 
 - [ ] **Step 2: Install React Native testing library + renderer**
 
 ```bash
-npx expo install react-test-renderer
-npm install --save-dev @testing-library/react-native
+pnpm expo install react-test-renderer
+pnpm add -D @testing-library/react-native
 ```
 
 Expected: installs successfully. (`react-test-renderer` must match the project's React version; `expo install` picks the right one.)
@@ -108,7 +120,7 @@ Inside the `"expo"` object add (merge if `extra` exists):
 - [ ] **Step 5: Verify the existing suite still passes**
 
 ```bash
-npm test
+pnpm test
 ```
 
 Expected: the 30 Plan-2a tests still pass (installs shouldn't change them).
@@ -116,7 +128,7 @@ Expected: the 30 Plan-2a tests still pass (installs shouldn't change them).
 - [ ] **Step 6: Commit**
 
 ```bash
-git add app/package.json app/package-lock.json app/app.json
+git add app/package.json app/pnpm-lock.yaml app/pnpm-workspace.yaml app/app.json
 git commit -m "chore(app): add expo-sqlite/speech/crypto/speech-recognition + testing-library"
 ```
 
@@ -1342,8 +1354,8 @@ In `app/app.json`, set `expo.extra.backendBaseUrl` to a URL the device can reach
 
 ```bash
 cd app
-npx expo prebuild
-npx expo run:ios   # or: npx expo run:android
+pnpm exec expo prebuild
+pnpm exec expo run:ios   # or: pnpm exec expo run:android
 ```
 
 Expected: the app builds and launches on a simulator/device. (Expo Go will NOT work because of expo-speech-recognition.)
