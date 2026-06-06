@@ -27,8 +27,9 @@ export function createNewsClient(opts: {
         `&pageSize=5&apiKey=${opts.apiKey}`;
       const res = await fetchFn(url);
       if (!res.ok) throw new Error(`news provider error: ${res.status}`);
-      const data = (await res.json()) as { articles: ProviderArticle[] };
-      return data.articles.map((a) => ({
+      const data = (await res.json()) as { articles?: ProviderArticle[] };
+      const articles = Array.isArray(data.articles) ? data.articles : [];
+      return articles.map((a) => ({
         title: a.title,
         source: a.source.name,
         url: a.url,

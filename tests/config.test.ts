@@ -28,4 +28,10 @@ describe("loadConfig", () => {
     expect(cfg.port).toBe(8080);
     expect(cfg.rateLimitMax).toBe(5);
   });
+
+  it("throws when PORT is not a number", () => {
+    expect(() =>
+      loadConfig({ ANTHROPIC_API_KEY: "a", NEWS_API_KEY: "n", PORT: "abc" })
+    ).toThrow(/PORT must be a number/);
+  });
 });

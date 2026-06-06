@@ -31,4 +31,10 @@ describe("createNewsClient", () => {
     const client = createNewsClient({ apiKey: "k", fetchFn: fetchFn as unknown as typeof fetch });
     await expect(client.fetchHeadlines(["tech"])).rejects.toThrow(/news provider error: 500/);
   });
+
+  it("returns an empty list when the provider omits articles", async () => {
+    const fetchFn = vi.fn(async () => fakeResponse({ status: "error" }));
+    const client = createNewsClient({ apiKey: "k", fetchFn: fetchFn as unknown as typeof fetch });
+    await expect(client.fetchHeadlines(["tech"])).resolves.toEqual([]);
+  });
 });
