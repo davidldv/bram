@@ -24,8 +24,7 @@ export function createLlmClient(opts: {
         messages,
       });
       return res.content
-        .filter((b: { type: string }) => b.type === "text")
-        .map((b: { text: string }) => b.text)
+        .map((b) => (b.type === "text" ? b.text : ""))
         .join("");
     },
   };
