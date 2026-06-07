@@ -8,13 +8,13 @@ Thin, stateless proxy for the Bram app. Holds the Claude + news API keys; stores
 - `GET /health` — `{ ok: true }`
 
 ## Setup
-1. `npm install`
+1. `pnpm install`
 2. Copy `.env.example` to `.env` and fill in keys.
-3. `npm run dev` (watch) or `npm run build && npm start`.
+3. `pnpm dev` (watch) or `pnpm build && pnpm start`.
 
 ## Test
-`npm test`
+`pnpm test`
 
 ## Design
 Stateless by design — no database, no personal data. See
-`docs/superpowers/specs/2026-06-05-bram-voice-assistant-design.md`.
+`../docs/superpowers/specs/2026-06-05-bram-voice-assistant-design.md`.
