@@ -4,6 +4,7 @@ import type {
   PreferenceRepository,
   TopicRepository,
 } from "../core/repository";
+import type { Notifier } from "../notify/notifier";
 import { morningBriefing } from "../core/briefing-service";
 import { capturePlans } from "../core/capture-service";
 import { buildChatSystemPrompt, getPersonaName } from "../core/persona";
@@ -24,6 +25,7 @@ export async function runTurn(
     plans: PlanRepository;
     topics: TopicRepository;
     prefs: PreferenceRepository;
+    notifier: Notifier;
     now: number;
     newId: () => string;
   },
@@ -41,7 +43,7 @@ export async function runTurn(
   }
 
   const captured = await capturePlans(
-    { api: deps.api, repo: deps.plans, now: deps.now, newId: deps.newId },
+    { api: deps.api, repo: deps.plans, notifier: deps.notifier, now: deps.now, newId: deps.newId },
     utterance
   );
   if (captured.length) {

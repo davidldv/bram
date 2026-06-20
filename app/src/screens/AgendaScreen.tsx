@@ -33,6 +33,7 @@ export function AgendaScreen() {
 
   const toggle = async (id: string) => {
     await s.plans.markDone(id);
+    await s.notifier.cancel(id);
     refresh();
   };
 
@@ -64,7 +65,7 @@ export function AgendaScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: space.lg },
+  content: { padding: space.lg, paddingTop: space.xl, paddingBottom: space.xl },
   header: {
     color: colors.text,
     fontSize: font.display,

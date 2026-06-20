@@ -25,6 +25,7 @@ function servicesWithReply(reply: string, transcript: string): { services: Servi
       prefs: createMemoryPreferenceRepository(),
       speaker: { speak: async (t: string) => { spoken.push(t); }, stop: () => {} },
       voice: { start: async (onResult: (t: string) => void) => { onResult(transcript); }, stop: () => {} },
+      notifier: { schedule: async () => {}, cancel: async () => {} },
       newId: () => "id-1",
       now: () => new Date(2026, 5, 5, 8, 0).getTime(),
     },

@@ -83,7 +83,7 @@ export function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: space.lg },
+  content: { padding: space.lg, paddingTop: space.xl, paddingBottom: space.xl },
   header: {
     color: colors.text,
     fontSize: font.display,

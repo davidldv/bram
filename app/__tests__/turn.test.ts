@@ -23,6 +23,7 @@ function deps(api: BramApi) {
     plans: createMemoryPlanRepository(),
     topics: createMemoryTopicRepository([{ id: "tech", label: "tech", enabled: true }]),
     prefs: createMemoryPreferenceRepository(),
+    notifier: { schedule: async () => {}, cancel: async () => {} },
     now: new Date(2026, 5, 5, 8, 0).getTime(),
     newId: () => "id-1",
   };

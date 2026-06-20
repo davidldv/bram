@@ -7,6 +7,7 @@ import type {
 } from "../core/repository";
 import type { Speaker } from "../speech/tts";
 import type { VoiceCapture } from "../speech/stt";
+import type { Notifier } from "../notify/notifier";
 
 export interface Services {
   api: BramApi;
@@ -15,6 +16,7 @@ export interface Services {
   prefs: PreferenceRepository;
   speaker: Speaker;
   voice: VoiceCapture;
+  notifier: Notifier;
   newId: () => string;
   now: () => number;
 }

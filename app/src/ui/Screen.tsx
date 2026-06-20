@@ -1,6 +1,9 @@
 import React from "react";
-import { View, SafeAreaView, StyleSheet } from "react-native";
+import { View, SafeAreaView, StatusBar, Platform, StyleSheet } from "react-native";
 import { colors } from "./theme";
+
+// Android's SafeAreaView ignores the status bar, so pad it manually.
+const topInset = Platform.OS === "android" ? StatusBar.currentHeight ?? 0 : 0;
 
 // Full-bleed dark background + safe area. `ambient` paints a soft radial glow
 // behind children using layered low-opacity circles (no gradient dependency).
@@ -25,7 +28,7 @@ export function Screen({
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.base },
+  root: { flex: 1, backgroundColor: colors.base, paddingTop: topInset },
   content: { flex: 1 },
   glow: { position: "absolute", borderRadius: 999, opacity: 0.18 },
   glow1: {

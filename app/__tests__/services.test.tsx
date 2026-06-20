@@ -17,6 +17,7 @@ function fakeServices(): Services {
     prefs: createMemoryPreferenceRepository(),
     speaker: { speak: async () => {}, stop: () => {} },
     voice: { start: async () => {}, stop: () => {} },
+    notifier: { schedule: async () => {}, cancel: async () => {} },
     newId: () => "x",
     now: () => 0,
   };
