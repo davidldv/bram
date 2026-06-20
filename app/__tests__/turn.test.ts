@@ -48,9 +48,14 @@ describe("runTurn", () => {
     expect((await d.plans.list()).map((p) => p.title)).toEqual(["gym"]);
   });
 
-  it("reports when nothing was captured", async () => {
-    const api: BramApi = { news: jest.fn(async () => []), chat: jest.fn(async () => "[]") };
-    const result = await runTurn(deps(api), "blah blah");
-    expect(result).toEqual({ kind: "capture", text: "I didn't catch anything to save.", count: 0 });
+  it("falls back to a conversational reply when nothing is captured", async () => {
+    const chat = jest
+      .fn()
+      .mockResolvedValueOnce("[]") // capture attempt finds no plans
+      .mockResolvedValueOnce("Doing great — how can I help?"); // chat fallback
+    const api: BramApi = { news: jest.fn(async () => []), chat };
+    const result = await runTurn(deps(api), "how are you");
+    expect(result).toEqual({ kind: "chat", text: "Doing great — how can I help?" });
+    expect(chat).toHaveBeenCalledTimes(2);
   });
 });

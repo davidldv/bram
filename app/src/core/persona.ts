@@ -14,3 +14,11 @@ export async function setPersonaName(
 ): Promise<void> {
   await prefs.set(PERSONA_KEY, name.trim() || DEFAULT_PERSONA);
 }
+
+export function buildChatSystemPrompt(name: string): string {
+  return [
+    `You are ${name}, a warm, concise personal voice assistant.`,
+    "Replies are spoken aloud, so keep them to 1-3 short sentences.",
+    "Use plain text only — no markdown, lists, code, or emoji.",
+  ].join("\n");
+}

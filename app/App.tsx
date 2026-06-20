@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Button, SafeAreaView, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { StatusBar } from "expo-status-bar";
 import { ServicesProvider, type Services } from "./src/app/services";
 import { buildServices } from "./src/app/build-services";
 import { ConversationScreen } from "./src/screens/ConversationScreen";
-import { TopicsScreen } from "./src/screens/TopicsScreen";
-import { PersonaScreen } from "./src/screens/PersonaScreen";
-
-type Tab = "talk" | "topics" | "name";
+import { AgendaScreen } from "./src/screens/AgendaScreen";
+import { SettingsScreen } from "./src/screens/SettingsScreen";
+import { Screen } from "./src/ui/Screen";
+import { TabBar, type Tab } from "./src/ui/TabBar";
+import { colors, font, space } from "./src/ui/theme";
 
 export default function App() {
   const [services, setServices] = useState<Services | null>(null);
@@ -18,27 +20,33 @@ export default function App() {
 
   if (!services) {
     return (
-      <SafeAreaView style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <ActivityIndicator />
-        <Text>Starting Bram…</Text>
-      </SafeAreaView>
+      <Screen>
+        <View style={styles.loading}>
+          <ActivityIndicator color={colors.accent} />
+          <Text style={styles.loadingText}>Starting Bram…</Text>
+        </View>
+      </Screen>
     );
   }
 
   return (
     <ServicesProvider services={services}>
-      <SafeAreaView style={{ flex: 1 }}>
-        <View style={{ flex: 1 }}>
+      <StatusBar style="light" />
+      <View style={styles.root}>
+        <View style={styles.body}>
           {tab === "talk" && <ConversationScreen />}
-          {tab === "topics" && <TopicsScreen />}
-          {tab === "name" && <PersonaScreen />}
+          {tab === "agenda" && <AgendaScreen />}
+          {tab === "settings" && <SettingsScreen />}
         </View>
-        <View style={{ flexDirection: "row", justifyContent: "space-around", padding: 8 }}>
-          <Button title="Talk" onPress={() => setTab("talk")} />
-          <Button title="Topics" onPress={() => setTab("topics")} />
-          <Button title="Name" onPress={() => setTab("name")} />
-        </View>
-      </SafeAreaView>
+        <TabBar active={tab} onChange={setTab} />
+      </View>
     </ServicesProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: colors.base },
+  body: { flex: 1 },
+  loading: { flex: 1, alignItems: "center", justifyContent: "center" },
+  loadingText: { color: colors.muted, fontSize: font.body, marginTop: space.md },
+});

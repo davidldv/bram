@@ -7,7 +7,11 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSSpeechRecognitionUsageDescription": "Allow Bram to convert your speech to text.",
+        "NSMicrophoneUsageDescription": "Allow Bram to use the microphone to hear you."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -16,7 +20,11 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.davidl.on.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -28,12 +36,14 @@
         {
           "microphonePermission": "Allow Bram to use the microphone to hear you.",
           "speechRecognitionPermission": "Allow Bram to convert your speech to text.",
-          "androidSpeechServicePackages": ["com.google.android.googlequicksearchbox"]
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
         }
       ]
     ],
     "extra": {
-      "backendBaseUrl": "http://localhost:3000"
+      "backendBaseUrl": "http://10.0.2.2:3000"
     }
   }
 }

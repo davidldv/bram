@@ -40,10 +40,10 @@ describe("ConversationScreen", () => {
       </ServicesProvider>
     );
 
-    fireEvent.press(screen.getByText("Talk"));
+    fireEvent.press(screen.getByLabelText("Talk"));
 
     await waitFor(() => expect(screen.getByText("Good morning, David.")).toBeTruthy());
     expect(spoken).toContain("Good morning, David.");
-    expect(screen.getByText("You: good morning")).toBeTruthy();
+    expect(screen.getByText("good morning")).toBeTruthy();
   });
 });
