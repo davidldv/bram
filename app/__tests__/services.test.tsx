@@ -19,6 +19,7 @@ function fakeServices(): Services {
     speaker: { speak: async () => {}, stop: () => {} },
     voice: { start: async () => {}, stop: () => {} },
     notifier: { schedule: async () => {}, cancel: async () => {} },
+    calendar: { listEvents: async () => [] },
     newId: () => "x",
     now: () => 0,
   };

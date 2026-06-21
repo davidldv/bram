@@ -33,6 +33,12 @@
       "expo-sqlite",
       "expo-notifications",
       [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow Bram to read your calendar to show your schedule."
+        }
+      ],
+      [
         "expo-speech-recognition",
         {
           "microphonePermission": "Allow Bram to use the microphone to hear you.",

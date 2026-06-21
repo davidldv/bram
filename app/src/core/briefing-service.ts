@@ -4,6 +4,7 @@ import type {
   PreferenceRepository,
   TopicRepository,
 } from "./repository";
+import type { CalendarService } from "../calendar/calendar";
 import { buildBriefingPrompt } from "./briefing";
 import { getPersonaName } from "./persona";
 
@@ -19,6 +20,7 @@ export async function morningBriefing(deps: {
   plans: PlanRepository;
   topics: TopicRepository;
   prefs: PreferenceRepository;
+  calendar: CalendarService;
   now: number;
 }): Promise<string> {
   const enabledTopics = (await deps.topics.list())
@@ -30,10 +32,11 @@ export async function morningBriefing(deps: {
 
   const { startMs, endMs } = dayRange(deps.now);
   const plans = await deps.plans.listForRange(startMs, endMs);
+  const events = await deps.calendar.listEvents(startMs, endMs);
 
   const persona = await getPersonaName(deps.prefs);
   const dateLabel = new Date(deps.now).toDateString();
 
-  const { system, messages } = buildBriefingPrompt({ persona, dateLabel, plans, headlines });
+  const { system, messages } = buildBriefingPrompt({ persona, dateLabel, plans, events, headlines });
   return deps.api.chat(system, messages);
 }

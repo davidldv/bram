@@ -1,12 +1,15 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ScrollView, Text, View, StyleSheet } from "react-native";
+import { ScrollView, Text, StyleSheet } from "react-native";
 import { useServices } from "../app/services";
 import { getPersonaName } from "../core/persona";
-import type { Plan } from "../core/types";
+import type { Plan, CalendarEvent } from "../core/types";
+import { buildAgenda } from "../core/agenda";
+import { dayRange } from "../core/briefing-service";
 import { Screen } from "../ui/Screen";
 import { Section } from "../ui/Section";
 import { PlanCard } from "../ui/PlanCard";
-import { planGroup, type PlanGroup } from "../ui/relative-time";
+import { EventCard } from "../ui/EventCard";
+import type { PlanGroup } from "../ui/relative-time";
 import { colors, font, space } from "../ui/theme";
 
 const GROUP_TITLE: Record<PlanGroup, string> = {
@@ -14,17 +17,21 @@ const GROUP_TITLE: Record<PlanGroup, string> = {
   upcoming: "Upcoming",
   someday: "Someday",
 };
-const ORDER: PlanGroup[] = ["today", "upcoming", "someday"];
+
+const HORIZON_DAYS = 14;
 
 export function AgendaScreen() {
   const s = useServices();
   const [plans, setPlans] = useState<Plan[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [persona, setPersona] = useState("Zayn");
   const now = s.now();
 
   const refresh = useCallback(() => {
     s.plans.list().then(setPlans);
-  }, [s]);
+    const { startMs } = dayRange(now);
+    s.calendar.listEvents(startMs, startMs + HORIZON_DAYS * 24 * 60 * 60 * 1000).then(setEvents);
+  }, [s, now]);
 
   useEffect(() => {
     refresh();
@@ -37,25 +44,24 @@ export function AgendaScreen() {
     refresh();
   };
 
-  const buckets = ORDER.map((g) => ({
-    group: g,
-    items: plans
-      .filter((p) => planGroup(now, p.scheduledAt) === g)
-      .sort((a, b) => Number(a.done) - Number(b.done) || (a.scheduledAt ?? Infinity) - (b.scheduledAt ?? Infinity)),
-  })).filter((b) => b.items.length > 0);
+  const groups = buildAgenda(plans, events, now);
 
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.header}>Agenda</Text>
-        {buckets.length === 0 ? (
+        {groups.length === 0 ? (
           <Text style={styles.empty}>Nothing on your plate. Talk to {persona} to add something.</Text>
         ) : (
-          buckets.map((b) => (
-            <Section key={b.group} title={GROUP_TITLE[b.group]}>
-              {b.items.map((p) => (
-                <PlanCard key={p.id} plan={p} now={now} onToggleDone={toggle} />
-              ))}
+          groups.map((g) => (
+            <Section key={g.group} title={GROUP_TITLE[g.group]}>
+              {g.items.map((it) =>
+                it.kind === "plan" ? (
+                  <PlanCard key={`p-${it.plan.id}`} plan={it.plan} now={now} onToggleDone={toggle} />
+                ) : (
+                  <EventCard key={`e-${it.event.id}`} event={it.event} now={now} />
+                )
+              )}
             </Section>
           ))
         )}

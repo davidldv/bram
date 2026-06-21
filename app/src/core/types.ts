@@ -31,3 +31,11 @@ export interface Memory {
   text: string;
   createdAt: number;
 }
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  startMs: number;
+  endMs: number | null;
+  allDay: boolean;
+}

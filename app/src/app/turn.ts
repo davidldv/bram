@@ -6,6 +6,7 @@ import type {
   MemoryRepository,
 } from "../core/repository";
 import type { Notifier } from "../notify/notifier";
+import type { CalendarService } from "../calendar/calendar";
 import { morningBriefing } from "../core/briefing-service";
 import { capturePlans } from "../core/capture-service";
 import { buildChatSystemPrompt, getPersonaName } from "../core/persona";
@@ -30,6 +31,7 @@ export async function runTurn(
     prefs: PreferenceRepository;
     memories: MemoryRepository;
     notifier: Notifier;
+    calendar: CalendarService;
     now: number;
     newId: () => string;
   },
@@ -41,6 +43,7 @@ export async function runTurn(
       plans: deps.plans,
       topics: deps.topics,
       prefs: deps.prefs,
+      calendar: deps.calendar,
       now: deps.now,
     });
     return { kind: "briefing", text };

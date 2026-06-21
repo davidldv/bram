@@ -5,7 +5,10 @@ import {
   createMemoryTopicRepository,
 } from "../src/core/memory-repository";
 import type { BramApi } from "../src/core/api";
-import type { Plan } from "../src/core/types";
+import type { Plan, CalendarEvent } from "../src/core/types";
+import type { CalendarService } from "../src/calendar/calendar";
+
+const noopCalendar: CalendarService = { listEvents: async () => [] };
 
 function plan(over: Partial<Plan> = {}): Plan {
   return { id: "1", type: "task", title: "thing", scheduledAt: null, createdAt: 0, done: false, ...over };
@@ -39,8 +42,10 @@ describe("morningBriefing", () => {
       { id: "sports", label: "sports", enabled: false },
     ]);
     const prefs = createMemoryPreferenceRepository();
+    const event: CalendarEvent = { id: "e1", title: "dentist", startMs: todayAt(11), endMs: null, allDay: false };
+    const calendar: CalendarService = { listEvents: jest.fn(async () => [event]) };
 
-    const reply = await morningBriefing({ api, plans, topics, prefs, now });
+    const reply = await morningBriefing({ api, plans, topics, prefs, calendar, now });
 
     expect(reply).toBe("Good morning.");
     expect((api.news as jest.Mock).mock.calls[0][0]).toEqual(["tech"]);
@@ -49,6 +54,7 @@ describe("morningBriefing", () => {
     const userContent = chatArgs[1][0].content as string;
     expect(userContent).toContain("standup");
     expect(userContent).not.toContain("old thing");
+    expect(userContent).toContain("dentist"); // calendar event reached the prompt
     expect(userContent).toContain("N");
     expect(chatArgs[0]).toContain("Zayn");
   });
@@ -63,7 +69,7 @@ describe("morningBriefing", () => {
     const topics = createMemoryTopicRepository([{ id: "tech", label: "tech", enabled: false }]);
     const prefs = createMemoryPreferenceRepository();
 
-    const reply = await morningBriefing({ api, plans, topics, prefs, now });
+    const reply = await morningBriefing({ api, plans, topics, prefs, calendar: noopCalendar, now });
 
     expect(reply).toBe("Morning.");
     expect(api.news as jest.Mock).not.toHaveBeenCalled();

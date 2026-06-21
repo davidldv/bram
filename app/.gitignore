@@ -43,3 +43,4 @@ yarn-error.*
 # build/runtime logs
 build-android.log
 metro.log
+cal-install.log

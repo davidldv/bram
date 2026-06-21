@@ -9,6 +9,7 @@ import type {
 import type { Speaker } from "../speech/tts";
 import type { VoiceCapture } from "../speech/stt";
 import type { Notifier } from "../notify/notifier";
+import type { CalendarService } from "../calendar/calendar";
 
 export interface Services {
   api: BramApi;
@@ -19,6 +20,7 @@ export interface Services {
   speaker: Speaker;
   voice: VoiceCapture;
   notifier: Notifier;
+  calendar: CalendarService;
   newId: () => string;
   now: () => number;
 }

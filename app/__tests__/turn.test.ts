@@ -26,6 +26,7 @@ function deps(api: BramApi) {
     prefs: createMemoryPreferenceRepository(),
     memories: createInMemoryMemoryRepository(),
     notifier: { schedule: async () => {}, cancel: async () => {} },
+    calendar: { listEvents: async () => [] },
     now: new Date(2026, 5, 5, 8, 0).getTime(),
     newId: () => "id-1",
   };
