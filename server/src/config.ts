@@ -1,5 +1,5 @@
 export interface Config {
-  anthropicApiKey: string;
+  openrouterKeys: string[];
   newsApiKey: string;
   model: string;
   port: number;
@@ -14,14 +14,19 @@ function numberFromEnv(value: string | undefined, name: string, fallback: number
 }
 
 export function loadConfig(env: Record<string, string | undefined> = process.env): Config {
-  const anthropicApiKey = env.ANTHROPIC_API_KEY;
+  // Primary + optional backups, tried in order on rate-limit/quota failures.
+  const openrouterKeys = [
+    env.OPENROUTER_API_KEY,
+    env.OPENROUTER_BACKUP_KEY,
+    env.OPENROUTER_BACKUP_KEY2,
+  ].filter((k): k is string => !!k && k.trim() !== "");
   const newsApiKey = env.NEWS_API_KEY;
-  if (!anthropicApiKey) throw new Error("ANTHROPIC_API_KEY is required");
+  if (openrouterKeys.length === 0) throw new Error("OPENROUTER_API_KEY is required");
   if (!newsApiKey) throw new Error("NEWS_API_KEY is required");
   return {
-    anthropicApiKey,
+    openrouterKeys,
     newsApiKey,
-    model: env.CLAUDE_MODEL ?? "claude-haiku-4-5-20251001",
+    model: env.OPENROUTER_MODEL ?? "openai/gpt-oss-120b:free",
     port: numberFromEnv(env.PORT, "PORT", 3000),
     rateLimitMax: numberFromEnv(env.RATE_LIMIT_MAX, "RATE_LIMIT_MAX", 30),
   };

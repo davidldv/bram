@@ -7,3 +7,7 @@ dist/
 # OS / editor
 .DS_Store
 Thumbs.db
+
+# IDE / logs
+.idea/
+*.log

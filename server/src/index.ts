@@ -8,7 +8,7 @@ function main() {
   const cfg = loadConfig();
 
   const app = createApp({
-    llm: createLlmClient({ apiKey: cfg.anthropicApiKey, model: cfg.model }),
+    llm: createLlmClient({ apiKeys: cfg.openrouterKeys, model: cfg.model }),
     news: createNewsClient({ apiKey: cfg.newsApiKey }),
     maxTokens: 1024,
     rateLimit: rateLimit({ windowMs: 60_000, max: cfg.rateLimitMax, standardHeaders: true }),
