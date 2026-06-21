@@ -3,6 +3,7 @@ import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { ServicesProvider, type Services } from "./src/app/services";
 import { buildServices } from "./src/app/build-services";
+import { syncProactiveNotifications } from "./src/core/proactivity";
 import { ConversationScreen } from "./src/screens/ConversationScreen";
 import { AgendaScreen } from "./src/screens/AgendaScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
@@ -17,6 +18,17 @@ export default function App() {
   useEffect(() => {
     buildServices().then(setServices);
   }, []);
+
+  // Proactively (re)schedule heads-ups for upcoming calendar events on open.
+  useEffect(() => {
+    if (services) {
+      syncProactiveNotifications({
+        calendar: services.calendar,
+        notifier: services.notifier,
+        now: Date.now(),
+      }).catch(() => {});
+    }
+  }, [services]);
 
   if (!services) {
     return (

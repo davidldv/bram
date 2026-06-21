@@ -18,7 +18,7 @@ function fakeServices(): Services {
     memories: { add: async () => {}, list: async () => [], delete: async () => {} },
     speaker: { speak: async () => {}, stop: () => {} },
     voice: { start: async () => {}, stop: () => {} },
-    notifier: { schedule: async () => {}, cancel: async () => {} },
+    notifier: { schedule: async () => {}, scheduleAt: async () => {}, cancel: async () => {} },
     calendar: { listEvents: async () => [] },
     newId: () => "x",
     now: () => 0,

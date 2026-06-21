@@ -11,7 +11,7 @@ function fakeApi(reply: string): BramApi {
 }
 
 function spyNotifier(): Notifier & { schedule: jest.Mock; cancel: jest.Mock } {
-  return { schedule: jest.fn(async () => {}), cancel: jest.fn(async () => {}) };
+  return { schedule: jest.fn(async () => {}), scheduleAt: jest.fn(async () => {}), cancel: jest.fn(async () => {}) };
 }
 
 describe("capturePlans", () => {

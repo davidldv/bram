@@ -4,6 +4,7 @@ import type { Plan } from "../core/types";
 
 export interface Notifier {
   schedule(plan: Plan): Promise<void>;
+  scheduleAt(note: { id: string; title: string; body: string; whenMs: number }): Promise<void>;
   cancel(planId: string): Promise<void>;
 }
 
@@ -41,23 +42,31 @@ async function ensurePermission(): Promise<boolean> {
 // Real, device-backed notifier. Best-effort: failures never throw so they can't
 // break capture or mark-done.
 export function createNotifier(getPersona: () => Promise<string>): Notifier {
-  return {
-    async schedule(plan) {
-      if (plan.scheduledAt == null) return;
+  const notifier: Notifier = {
+    async scheduleAt(note) {
       try {
         if (!(await ensurePermission())) return;
-        const persona = await getPersona();
         await Notifications.scheduleNotificationAsync({
-          identifier: plan.id,
-          content: { title: plan.title, body: `From ${persona}` },
+          identifier: note.id,
+          content: { title: note.title, body: note.body },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: new Date(plan.scheduledAt),
+            date: new Date(note.whenMs),
           },
         });
       } catch {
-        // ponytail: swallow; a missed schedule shouldn't break capture.
+        // ponytail: swallow; a missed schedule shouldn't break the app.
       }
+    },
+    async schedule(plan) {
+      if (plan.scheduledAt == null) return;
+      const persona = await getPersona().catch(() => "Bram");
+      await notifier.scheduleAt({
+        id: plan.id,
+        title: plan.title,
+        body: `From ${persona}`,
+        whenMs: plan.scheduledAt,
+      });
     },
     async cancel(planId) {
       try {
@@ -67,8 +76,9 @@ export function createNotifier(getPersona: () => Promise<string>): Notifier {
       }
     },
   };
+  return notifier;
 }
 
 export function createNoopNotifier(): Notifier {
-  return { async schedule() {}, async cancel() {} };
+  return { async schedule() {}, async scheduleAt() {}, async cancel() {} };
 }
