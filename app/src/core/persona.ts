@@ -15,10 +15,12 @@ export async function setPersonaName(
   await prefs.set(PERSONA_KEY, name.trim() || DEFAULT_PERSONA);
 }
 
-export function buildChatSystemPrompt(name: string): string {
-  return [
+export function buildChatSystemPrompt(name: string, recall = ""): string {
+  const lines = [
     `You are ${name}, a warm, concise personal voice assistant.`,
     "Replies are spoken aloud, so keep them to 1-3 short sentences.",
     "Use plain text only — no markdown, lists, code, or emoji.",
-  ].join("\n");
+  ];
+  if (recall) lines.push("", recall);
+  return lines.join("\n");
 }

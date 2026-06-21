@@ -1,4 +1,4 @@
-import type { Plan, NewsTopic } from "../core/types";
+import type { Plan, NewsTopic, Memory } from "../core/types";
 
 export interface PlanRow {
   id: string;
@@ -28,4 +28,14 @@ export interface TopicRow {
 
 export function rowToTopic(r: TopicRow): NewsTopic {
   return { id: r.id, label: r.label, enabled: r.enabled === 1 };
+}
+
+export interface MemoryRow {
+  id: string;
+  text: string;
+  created_at: number;
+}
+
+export function rowToMemory(r: MemoryRow): Memory {
+  return { id: r.id, text: r.text, createdAt: r.created_at };
 }

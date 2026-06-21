@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TextInput, View, Switch, Pressable, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useServices } from "../app/services";
 import { getPersonaName, setPersonaName } from "../core/persona";
-import type { NewsTopic } from "../core/types";
+import type { NewsTopic, Memory } from "../core/types";
 import { Screen } from "../ui/Screen";
 import { Section } from "../ui/Section";
 import { Card } from "../ui/Card";
@@ -13,6 +14,7 @@ export function SettingsScreen() {
   const [name, setName] = useState("");
   const [saved, setSaved] = useState("");
   const [topics, setTopics] = useState<NewsTopic[]>([]);
+  const [memories, setMemories] = useState<Memory[]>([]);
 
   useEffect(() => {
     getPersonaName(s.prefs).then((n) => {
@@ -20,6 +22,7 @@ export function SettingsScreen() {
       setSaved(n);
     });
     s.topics.list().then(setTopics);
+    s.memories.list().then(setMemories);
   }, [s]);
 
   const save = async () => {
@@ -30,6 +33,11 @@ export function SettingsScreen() {
   const toggle = async (t: NewsTopic) => {
     await s.topics.setEnabled(t.id, !t.enabled);
     setTopics(await s.topics.list());
+  };
+
+  const forget = async (id: string) => {
+    await s.memories.delete(id);
+    setMemories(await s.memories.list());
   };
 
   const dirty = name.trim() !== saved && name.trim() !== "";
@@ -77,6 +85,27 @@ export function SettingsScreen() {
             ))}
           </Card>
         </Section>
+
+        <Section title="What Bram knows">
+          <Card>
+            {memories.length === 0 ? (
+              <Text style={styles.empty}>Nothing yet. Say “remember that…” to teach me.</Text>
+            ) : (
+              memories.map((m, i) => (
+                <View key={m.id} style={[styles.factRow, i > 0 && styles.divider]}>
+                  <Text style={styles.factText}>{m.text}</Text>
+                  <Pressable
+                    onPress={() => forget(m.id)}
+                    hitSlop={12}
+                    accessibilityLabel={`forget: ${m.text}`}
+                  >
+                    <Ionicons name="close" size={20} color={colors.muted} />
+                  </Pressable>
+                </View>
+              ))
+            )}
+          </Card>
+        </Section>
       </ScrollView>
     </Screen>
   );
@@ -118,4 +147,12 @@ const styles = StyleSheet.create({
   },
   divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.hairline },
   topicLabel: { color: colors.text, fontSize: font.body },
+  empty: { color: colors.muted, fontSize: font.body, lineHeight: 20 },
+  factRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: space.md,
+  },
+  factText: { color: colors.text, fontSize: font.body, flex: 1, marginRight: space.md },
 });

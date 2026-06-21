@@ -46,7 +46,7 @@ export function ConversationScreen() {
         setOrb("thinking");
         try {
           const result = await runTurn(
-            { api: s.api, plans: s.plans, topics: s.topics, prefs: s.prefs, notifier: s.notifier, now: s.now(), newId: s.newId },
+            { api: s.api, plans: s.plans, topics: s.topics, prefs: s.prefs, memories: s.memories, notifier: s.notifier, now: s.now(), newId: s.newId },
             transcript
           );
           add({ role: "assistant", text: result.text });

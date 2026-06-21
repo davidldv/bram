@@ -16,6 +16,11 @@ CREATE TABLE IF NOT EXISTS news_topic (
   label TEXT NOT NULL,
   enabled INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS memory (
+  id TEXT PRIMARY KEY NOT NULL,
+  text TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
 `;
 
 export const DEFAULT_TOPICS: { id: string; label: string; enabled: number }[] = [

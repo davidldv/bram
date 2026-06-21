@@ -15,6 +15,7 @@ function fakeServices(): Services {
     plans: createMemoryPlanRepository(),
     topics: createMemoryTopicRepository([]),
     prefs: createMemoryPreferenceRepository(),
+    memories: { add: async () => {}, list: async () => [], delete: async () => {} },
     speaker: { speak: async () => {}, stop: () => {} },
     voice: { start: async () => {}, stop: () => {} },
     notifier: { schedule: async () => {}, cancel: async () => {} },

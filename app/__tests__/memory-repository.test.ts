@@ -2,6 +2,7 @@ import {
   createMemoryPlanRepository,
   createMemoryPreferenceRepository,
   createMemoryTopicRepository,
+  createInMemoryMemoryRepository,
 } from "../src/core/memory-repository";
 import type { Plan } from "../src/core/types";
 
@@ -62,5 +63,16 @@ describe("memory topic repository", () => {
     await topics.setEnabled("world", true);
     const list = await topics.list();
     expect(list.find((t) => t.id === "world")?.enabled).toBe(true);
+  });
+});
+
+describe("in-memory memory (facts) repository", () => {
+  it("adds, lists, and deletes facts", async () => {
+    const repo = createInMemoryMemoryRepository();
+    await repo.add({ id: "a", text: "my wife is Ana", createdAt: 1 });
+    await repo.add({ id: "b", text: "I take meds at 9", createdAt: 2 });
+    expect((await repo.list()).map((m) => m.id)).toEqual(["a", "b"]);
+    await repo.delete("a");
+    expect((await repo.list()).map((m) => m.id)).toEqual(["b"]);
   });
 });

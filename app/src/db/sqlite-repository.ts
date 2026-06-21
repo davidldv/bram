@@ -1,11 +1,12 @@
-import type { Plan, NewsTopic } from "../core/types";
+import type { Plan, NewsTopic, Memory } from "../core/types";
 import type {
   PlanRepository,
   PreferenceRepository,
   TopicRepository,
+  MemoryRepository,
 } from "../core/repository";
 import type { SqliteDatabase } from "./sqlite";
-import { rowToPlan, rowToTopic, type PlanRow, type TopicRow } from "./mappers";
+import { rowToPlan, rowToTopic, rowToMemory, type PlanRow, type TopicRow, type MemoryRow } from "./mappers";
 
 export function createSqlitePlanRepository(db: SqliteDatabase): PlanRepository {
   return {
@@ -58,6 +59,24 @@ export function createSqliteTopicRepository(db: SqliteDatabase): TopicRepository
     },
     async setEnabled(id: string, enabled: boolean) {
       await db.runAsync("UPDATE news_topic SET enabled = ? WHERE id = ?", [enabled ? 1 : 0, id]);
+    },
+  };
+}
+
+export function createSqliteMemoryRepository(db: SqliteDatabase): MemoryRepository {
+  return {
+    async add(memory: Memory) {
+      await db.runAsync(
+        "INSERT INTO memory (id, text, created_at) VALUES (?, ?, ?)",
+        [memory.id, memory.text, memory.createdAt]
+      );
+    },
+    async list() {
+      const rows = await db.getAllAsync<MemoryRow>("SELECT * FROM memory ORDER BY created_at ASC");
+      return rows.map(rowToMemory);
+    },
+    async delete(id: string) {
+      await db.runAsync("DELETE FROM memory WHERE id = ?", [id]);
     },
   };
 }

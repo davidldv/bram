@@ -25,3 +25,9 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
 }
+
+export interface Memory {
+  id: string;
+  text: string;
+  createdAt: number;
+}

@@ -1,4 +1,4 @@
-import type { Plan, NewsTopic } from "./types";
+import type { Plan, NewsTopic, Memory } from "./types";
 
 export interface PlanRepository {
   add(plan: Plan): Promise<void>;
@@ -15,4 +15,10 @@ export interface PreferenceRepository {
 export interface TopicRepository {
   list(): Promise<NewsTopic[]>;
   setEnabled(id: string, enabled: boolean): Promise<void>;
+}
+
+export interface MemoryRepository {
+  add(memory: Memory): Promise<void>;
+  list(): Promise<Memory[]>;
+  delete(id: string): Promise<void>;
 }

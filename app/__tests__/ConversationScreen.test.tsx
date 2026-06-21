@@ -23,6 +23,7 @@ function servicesWithReply(reply: string, transcript: string): { services: Servi
       plans: createMemoryPlanRepository(),
       topics: createMemoryTopicRepository([]),
       prefs: createMemoryPreferenceRepository(),
+      memories: { add: async () => {}, list: async () => [], delete: async () => {} },
       speaker: { speak: async (t: string) => { spoken.push(t); }, stop: () => {} },
       voice: { start: async (onResult: (t: string) => void) => { onResult(transcript); }, stop: () => {} },
       notifier: { schedule: async () => {}, cancel: async () => {} },

@@ -4,6 +4,7 @@ import type {
   PlanRepository,
   PreferenceRepository,
   TopicRepository,
+  MemoryRepository,
 } from "../core/repository";
 import type { Speaker } from "../speech/tts";
 import type { VoiceCapture } from "../speech/stt";
@@ -14,6 +15,7 @@ export interface Services {
   plans: PlanRepository;
   topics: TopicRepository;
   prefs: PreferenceRepository;
+  memories: MemoryRepository;
   speaker: Speaker;
   voice: VoiceCapture;
   notifier: Notifier;

@@ -3,15 +3,18 @@ import type {
   PlanRepository,
   PreferenceRepository,
   TopicRepository,
+  MemoryRepository,
 } from "../core/repository";
 import type { Notifier } from "../notify/notifier";
 import { morningBriefing } from "../core/briefing-service";
 import { capturePlans } from "../core/capture-service";
 import { buildChatSystemPrompt, getPersonaName } from "../core/persona";
+import { isRememberIntent, stripRememberLead, buildRecall } from "../core/memory";
 
 export type TurnResult =
   | { kind: "briefing"; text: string }
   | { kind: "capture"; text: string; count: number }
+  | { kind: "remember"; text: string }
   | { kind: "chat"; text: string };
 
 export function isBriefingIntent(utterance: string): boolean {
@@ -25,6 +28,7 @@ export async function runTurn(
     plans: PlanRepository;
     topics: TopicRepository;
     prefs: PreferenceRepository;
+    memories: MemoryRepository;
     notifier: Notifier;
     now: number;
     newId: () => string;
@@ -40,6 +44,16 @@ export async function runTurn(
       now: deps.now,
     });
     return { kind: "briefing", text };
+  }
+
+  // "Remember that…" → store a durable fact. Checked before capture so it isn't
+  // parsed as a plan. Empty fact (nothing after the lead) falls through to chat.
+  if (isRememberIntent(utterance)) {
+    const fact = stripRememberLead(utterance);
+    if (fact) {
+      await deps.memories.add({ id: deps.newId(), text: fact, createdAt: deps.now });
+      return { kind: "remember", text: "Got it — I'll remember that." };
+    }
   }
 
   const captured = await capturePlans(
@@ -58,7 +72,8 @@ export async function runTurn(
   // ponytail: capture-first means 2 LLM calls per chat turn; add an intent
   // classifier (one call) if free-tier rate limits start biting.
   const persona = await getPersonaName(deps.prefs);
-  const text = await deps.api.chat(buildChatSystemPrompt(persona), [
+  const recall = buildRecall(await deps.memories.list());
+  const text = await deps.api.chat(buildChatSystemPrompt(persona, recall), [
     { role: "user", content: utterance },
   ]);
   return { kind: "chat", text };

@@ -3,6 +3,7 @@ import {
   createMemoryPlanRepository,
   createMemoryPreferenceRepository,
   createMemoryTopicRepository,
+  createInMemoryMemoryRepository,
 } from "../src/core/memory-repository";
 import type { BramApi } from "../src/core/api";
 
@@ -23,6 +24,7 @@ function deps(api: BramApi) {
     plans: createMemoryPlanRepository(),
     topics: createMemoryTopicRepository([{ id: "tech", label: "tech", enabled: true }]),
     prefs: createMemoryPreferenceRepository(),
+    memories: createInMemoryMemoryRepository(),
     notifier: { schedule: async () => {}, cancel: async () => {} },
     now: new Date(2026, 5, 5, 8, 0).getTime(),
     newId: () => "id-1",
@@ -58,5 +60,28 @@ describe("runTurn", () => {
     const result = await runTurn(deps(api), "how are you");
     expect(result).toEqual({ kind: "chat", text: "Doing great — how can I help?" });
     expect(chat).toHaveBeenCalledTimes(2);
+  });
+
+  it("stores a fact on a 'remember that' utterance without calling the LLM", async () => {
+    const api: BramApi = { news: jest.fn(async () => []), chat: jest.fn(async () => "") };
+    const d = deps(api);
+    const result = await runTurn(d, "remember that my wife is Ana");
+    expect(result).toEqual({ kind: "remember", text: "Got it — I'll remember that." });
+    expect((await d.memories.list()).map((m) => m.text)).toEqual(["my wife is Ana"]);
+    expect(api.chat).not.toHaveBeenCalled();
+  });
+
+  it("injects known facts into the chat system prompt", async () => {
+    const chat = jest
+      .fn()
+      .mockResolvedValueOnce("[]") // capture finds nothing
+      .mockResolvedValueOnce("Sure thing."); // chat reply
+    const api: BramApi = { news: jest.fn(async () => []), chat };
+    const d = deps(api);
+    await d.memories.add({ id: "m1", text: "my wife is Ana", createdAt: 1 });
+    await runTurn(d, "say hi to my wife");
+    const chatSystemPrompt = chat.mock.calls[1][0] as string;
+    expect(chatSystemPrompt).toContain("Things you know about the user:");
+    expect(chatSystemPrompt).toContain("my wife is Ana");
   });
 });

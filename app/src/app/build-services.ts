@@ -4,6 +4,7 @@ import {
   createSqlitePlanRepository,
   createSqlitePreferenceRepository,
   createSqliteTopicRepository,
+  createSqliteMemoryRepository,
 } from "../db/sqlite-repository";
 import { openBramDatabase } from "../db/open";
 import { createSpeaker } from "../speech/tts";
@@ -21,6 +22,7 @@ export async function buildServices(): Promise<Services> {
     plans: createSqlitePlanRepository(db),
     topics: createSqliteTopicRepository(db),
     prefs,
+    memories: createSqliteMemoryRepository(db),
     speaker: createSpeaker(),
     voice: createVoiceCapture(),
     notifier: createNotifier(() => getPersonaName(prefs)),

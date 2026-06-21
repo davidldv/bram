@@ -1,8 +1,9 @@
-import type { Plan, NewsTopic } from "./types";
+import type { Plan, NewsTopic, Memory } from "./types";
 import type {
   PlanRepository,
   PreferenceRepository,
   TopicRepository,
+  MemoryRepository,
 } from "./repository";
 
 export function createMemoryPlanRepository(seed: Plan[] = []): PlanRepository {
@@ -49,6 +50,23 @@ export function createMemoryTopicRepository(seed: NewsTopic[]): TopicRepository 
     async setEnabled(id, enabled) {
       const t = topics.find((x) => x.id === id);
       if (t) t.enabled = enabled;
+    },
+  };
+}
+
+// In-memory MemoryRepository (the "Memory" entity, in-memory backing).
+export function createInMemoryMemoryRepository(seed: Memory[] = []): MemoryRepository {
+  const facts: Memory[] = [...seed];
+  return {
+    async add(memory) {
+      facts.push(memory);
+    },
+    async list() {
+      return [...facts];
+    },
+    async delete(id) {
+      const i = facts.findIndex((f) => f.id === id);
+      if (i >= 0) facts.splice(i, 1);
     },
   };
 }
