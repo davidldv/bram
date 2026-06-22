@@ -85,4 +85,42 @@ describe("runTurn", () => {
     expect(chatSystemPrompt).toContain("Things you know about the user:");
     expect(chatSystemPrompt).toContain("my wife is Ana");
   });
+
+  it("stores new facts emitted by the chat turn and returns the clean reply", async () => {
+    const reply = 'Nice to meet your wife.\n<<FACTS>>\n["my wife is Ana"]';
+    const chat = jest.fn().mockResolvedValueOnce("[]").mockResolvedValueOnce(reply);
+    const api: BramApi = { news: jest.fn(async () => []), chat };
+    const d = deps(api);
+    const result = await runTurn(d, "my wife is Ana by the way");
+    expect(result).toEqual({ kind: "chat", text: "Nice to meet your wife." });
+    expect((await d.memories.list()).map((m) => m.text)).toEqual(["my wife is Ana"]);
+  });
+
+  it("skips a fact that duplicates a known one (case-insensitive)", async () => {
+    const reply = 'Sure.\n<<FACTS>>\n["My Wife Is Ana"]';
+    const chat = jest.fn().mockResolvedValueOnce("[]").mockResolvedValueOnce(reply);
+    const api: BramApi = { news: jest.fn(async () => []), chat };
+    const d = deps(api);
+    await d.memories.add({ id: "m1", text: "my wife is Ana", createdAt: 1 });
+    await runTurn(d, "talk about my wife");
+    expect((await d.memories.list()).map((m) => m.text)).toEqual(["my wife is Ana"]);
+  });
+
+  it("stores at most 3 facts per turn", async () => {
+    const reply = 'Ok.\n<<FACTS>>\n["a","b","c","d"]';
+    const chat = jest.fn().mockResolvedValueOnce("[]").mockResolvedValueOnce(reply);
+    const api: BramApi = { news: jest.fn(async () => []), chat };
+    const d = deps(api);
+    await runTurn(d, "lots about me");
+    expect((await d.memories.list()).map((m) => m.text)).toEqual(["a", "b", "c"]);
+  });
+
+  it("stores nothing and returns the raw reply when there is no facts block", async () => {
+    const chat = jest.fn().mockResolvedValueOnce("[]").mockResolvedValueOnce("Just chatting.");
+    const api: BramApi = { news: jest.fn(async () => []), chat };
+    const d = deps(api);
+    const result = await runTurn(d, "how are you");
+    expect(result).toEqual({ kind: "chat", text: "Just chatting." });
+    expect(await d.memories.list()).toEqual([]);
+  });
 });
