@@ -17,4 +17,8 @@ export interface LifeStore {
   search(tokens: string[]): Promise<(Entity | LifeEvent)[]>;
   eventsForEntity(entityId: string): Promise<LifeEvent[]>;
   deleteEntity(id: string): Promise<void>;
+  allEntities(): Promise<Entity[]>;
+  graphEdges(): Promise<Array<[string, string]>>;
+  entityNeighbors(id: string): Promise<Entity[]>;
+  updateEntity(id: string, name: string, attributes: Record<string, unknown> | null): Promise<Entity>;
 }

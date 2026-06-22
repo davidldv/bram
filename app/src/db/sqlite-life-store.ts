@@ -65,5 +65,40 @@ export function createSqliteLifeStore(db: SqliteDatabase): LifeStore {
       await db.runAsync("DELETE FROM entity WHERE id = ?", [id]);
       await db.runAsync("DELETE FROM link WHERE from_id = ? OR to_id = ?", [id, id]);
     },
+    async allEntities() {
+      return (await db.getAllAsync<EntityRow>("SELECT * FROM entity ORDER BY type, name")).map(rowToEntity);
+    },
+    async graphEdges() {
+      const rows = await db.getAllAsync<{ a: string; b: string }>(
+        `SELECT DISTINCT l1.to_id AS a, l2.to_id AS b
+         FROM link l1
+         JOIN link l2 ON l1.from_id = l2.from_id AND l1.to_id < l2.to_id
+         WHERE l1.from_id IN (SELECT id FROM event)`
+      );
+      return rows.map((r) => [r.a, r.b] as [string, string]);
+    },
+    async entityNeighbors(id) {
+      return (await db.getAllAsync<EntityRow>(
+        `SELECT DISTINCT e.* FROM entity e
+         JOIN link l2 ON l2.to_id = e.id
+         JOIN link l1 ON l1.from_id = l2.from_id
+         WHERE l1.to_id = ? AND e.id != ? AND l1.from_id IN (SELECT id FROM event)`,
+        [id, id]
+      )).map(rowToEntity);
+    },
+    async updateEntity(id, name, attributes) {
+      const rows = await db.getAllAsync<EntityRow>("SELECT * FROM entity WHERE id = ?", [id]);
+      const row = rows[0];
+      if (!row) throw new Error("updateEntity: entity not found");
+      const key = name.trim().toLowerCase();
+      const dup = await db.getAllAsync<EntityRow>(
+        "SELECT id FROM entity WHERE type = ? AND lower(name) = ? AND id != ?",
+        [row.type, key, id]
+      );
+      if (dup.length) throw new Error("updateEntity: name already exists");
+      const attrJson = attributes ? JSON.stringify(attributes) : null;
+      await db.runAsync("UPDATE entity SET name = ?, attributes = ? WHERE id = ?", [name.trim(), attrJson, id]);
+      return rowToEntity({ ...row, name: name.trim(), attributes: attrJson });
+    },
   };
 }
