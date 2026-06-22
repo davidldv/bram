@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, TextInput, View, Pressable, StyleSheet } from "react-native";
+import { ScrollView, Text, TextInput, View, Pressable, StyleSheet, Alert } from "react-native";
 import { useServices } from "../app/services";
 import type { Entity, LifeEvent } from "../core/types";
 import { Screen } from "../ui/Screen";
@@ -54,10 +54,19 @@ export function NodeDetailScreen({
     }
   };
 
-  const remove = async () => {
+  const remove = () => {
     if (!entity) return;
-    await store.deleteEntity(entity.id);
-    onBack();
+    Alert.alert("Delete?", `Remove "${entity.name}"? This can't be undone.`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          await store.deleteEntity(entity.id);
+          onBack();
+        },
+      },
+    ]);
   };
 
   const dirty = entity != null && name.trim() !== "" && name.trim() !== entity.name;

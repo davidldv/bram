@@ -59,7 +59,13 @@ export default function App() {
             ))}
           {tab === "settings" && <SettingsScreen />}
         </View>
-        <TabBar active={tab} onChange={setTab} />
+        <TabBar
+          active={tab}
+          onChange={(t) => {
+            if (t !== "graph") setGraphSel(null);
+            setTab(t);
+          }}
+        />
       </View>
     </ServicesProvider>
   );

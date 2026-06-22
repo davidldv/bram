@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, PanResponder, StyleSheet, LayoutChangeEvent } from "react-native";
+import { View, Text, PanResponder, StyleSheet, LayoutChangeEvent, ActivityIndicator } from "react-native";
 import Svg, { G, Line, Circle, Text as SvgText } from "react-native-svg";
 import { useServices } from "../app/services";
 import { useGraphLayout } from "../ui/graph/use-graph-layout";
@@ -20,10 +20,14 @@ export function GraphScreen({ onSelect }: { onSelect: (entityId: string) => void
   const [entities, setEntities] = useState<Entity[]>([]);
   const [edges, setEdges] = useState<Array<[string, string]>>([]);
   const [size, setSize] = useState({ width: 0, height: 0 });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    store.allEntities().then(setEntities);
-    store.graphEdges().then(setEdges);
+    Promise.all([store.allEntities(), store.graphEdges()]).then(([ents, edgs]) => {
+      setEntities(ents);
+      setEdges(edgs);
+      setLoading(false);
+    });
   }, [store]);
 
   const { nodes } = useGraphLayout(entities, edges, size);
@@ -66,6 +70,16 @@ export function GraphScreen({ onSelect }: { onSelect: (entityId: string) => void
     setSize({ width, height });
   };
 
+  if (loading) {
+    return (
+      <Screen>
+        <View style={styles.empty}>
+          <ActivityIndicator color={colors.accent} />
+        </View>
+      </Screen>
+    );
+  }
+
   if (entities.length === 0) {
     return (
       <Screen>
@@ -88,10 +102,10 @@ export function GraphScreen({ onSelect }: { onSelect: (entityId: string) => void
               return (
                 <Line
                   key={i}
-                  x1={na.x}
-                  y1={na.y}
-                  x2={nb.x}
-                  y2={nb.y}
+                  x1={na.x ?? 0}
+                  y1={na.y ?? 0}
+                  x2={nb.x ?? 0}
+                  y2={nb.y ?? 0}
                   stroke={colors.hairline}
                   strokeWidth={1}
                 />
@@ -107,7 +121,7 @@ export function GraphScreen({ onSelect }: { onSelect: (entityId: string) => void
                   onPress={() => onSelect(n.id)}
                 />
                 <SvgText
-                  x={n.x}
+                  x={n.x ?? 0}
                   y={(n.y ?? 0) + clamp(8 + n.degree * 2, 8, 22) + 12}
                   fill={colors.muted}
                   fontSize={10}
