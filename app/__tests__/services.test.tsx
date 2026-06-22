@@ -8,6 +8,7 @@ import {
   createMemoryPreferenceRepository,
   createMemoryTopicRepository,
 } from "../src/core/memory-repository";
+import { createInMemoryLifeStore } from "../src/core/life-store-memory";
 
 function fakeServices(): Services {
   return {
@@ -15,7 +16,7 @@ function fakeServices(): Services {
     plans: createMemoryPlanRepository(),
     topics: createMemoryTopicRepository([]),
     prefs: createMemoryPreferenceRepository(),
-    memories: { add: async () => {}, list: async () => [], delete: async () => {} },
+    store: createInMemoryLifeStore(),
     speaker: { speak: async () => {}, stop: () => {} },
     voice: { start: async () => {}, stop: () => {} },
     notifier: { schedule: async () => {}, scheduleAt: async () => {}, cancel: async () => {} },

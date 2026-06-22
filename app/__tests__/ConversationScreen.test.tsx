@@ -8,6 +8,7 @@ import {
   createMemoryPreferenceRepository,
   createMemoryTopicRepository,
 } from "../src/core/memory-repository";
+import { createInMemoryLifeStore } from "../src/core/life-store-memory";
 
 function jsonResponse(body: unknown): Response {
   return { ok: true, status: 200, json: async () => body } as unknown as Response;
@@ -23,7 +24,7 @@ function servicesWithReply(reply: string, transcript: string): { services: Servi
       plans: createMemoryPlanRepository(),
       topics: createMemoryTopicRepository([]),
       prefs: createMemoryPreferenceRepository(),
-      memories: { add: async () => {}, list: async () => [], delete: async () => {} },
+      store: createInMemoryLifeStore(),
       speaker: { speak: async (t: string) => { spoken.push(t); }, stop: () => {} },
       voice: { start: async (onResult: (t: string) => void) => { onResult(transcript); }, stop: () => {} },
       notifier: { schedule: async () => {}, scheduleAt: async () => {}, cancel: async () => {} },
