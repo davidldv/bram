@@ -1,5 +1,4 @@
-import { isRememberIntent, stripRememberLead, buildRecall, parseChatReply, parseRoughDate, buildExtractionInstructions } from "../src/core/memory";
-import type { Memory } from "../src/core/types";
+import { isRememberIntent, stripRememberLead, parseChatReply, parseRoughDate, buildExtractionInstructions } from "../src/core/memory";
 
 describe("isRememberIntent", () => {
   it("matches remember phrases", () => {
@@ -24,21 +23,6 @@ describe("stripRememberLead", () => {
   });
   it("returns empty when there is nothing after the lead", () => {
     expect(stripRememberLead("remember that")).toBe("");
-  });
-});
-
-describe("buildRecall", () => {
-  it("returns empty string for no memories", () => {
-    expect(buildRecall([])).toBe("");
-  });
-  it("formats a bulleted block", () => {
-    const mems: Memory[] = [
-      { id: "1", text: "my wife is Ana", createdAt: 1 },
-      { id: "2", text: "I take meds at 9am", createdAt: 2 },
-    ];
-    expect(buildRecall(mems)).toBe(
-      "Things you know about the user:\n- my wife is Ana\n- I take meds at 9am"
-    );
   });
 });
 
