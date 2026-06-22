@@ -25,10 +25,17 @@ interface GraphLink {
   target: string | GraphNode;
 }
 
-// Runs a d3-force simulation over the entities/edges, seeded on a circle so the
-// first frame isn't a singularity. d3 ticks via requestAnimationFrame and stops
-// itself once alpha decays (settle-then-freeze). We bump a counter each tick so
-// React re-reads the mutated node positions.
+/**
+ * Runs a d3-force simulation over the entities/edges, seeded on a circle so the
+ * first frame isn't a singularity. d3 ticks via requestAnimationFrame and stops
+ * itself once alpha decays (settle-then-freeze). We bump a counter each tick so
+ * React re-reads the mutated node positions.
+ *
+ * NOTE: `entities` and `edges` must be referentially stable across renders
+ * (hold them in state or useMemo at the call site). They are in this hook's
+ * effect dependency array — passing freshly-created arrays each render restarts
+ * the simulation every render, so it never settles.
+ */
 export function useGraphLayout(
   entities: Entity[],
   edges: Array<[string, string]>,
