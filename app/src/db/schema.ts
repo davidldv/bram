@@ -21,6 +21,25 @@ CREATE TABLE IF NOT EXISTS memory (
   text TEXT NOT NULL,
   created_at INTEGER NOT NULL
 );
+CREATE TABLE IF NOT EXISTS entity (
+  id TEXT PRIMARY KEY NOT NULL,
+  type TEXT NOT NULL,
+  name TEXT NOT NULL,
+  attributes TEXT,
+  last_mentioned_at INTEGER NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS event (
+  id TEXT PRIMARY KEY NOT NULL,
+  text TEXT NOT NULL,
+  occurred_at INTEGER,
+  created_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS link (
+  from_id TEXT NOT NULL,
+  to_id TEXT NOT NULL,
+  PRIMARY KEY (from_id, to_id)
+);
 `;
 
 export const DEFAULT_TOPICS: { id: string; label: string; enabled: number }[] = [
