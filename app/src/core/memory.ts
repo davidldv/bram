@@ -20,15 +20,16 @@ export function buildRecall(memories: Memory[]): string {
 export const FACTS_SENTINEL = "<<FACTS>>";
 
 // Splits a chat reply into the spoken text and any facts the model appended
-// after a `<<FACTS>>` line. Tolerant: anything unparseable yields no facts and
-// the whole text is kept as the reply, so extraction never breaks a conversation.
+// after the `<<FACTS>>` sentinel. Splits on the sentinel wherever it appears —
+// free models emit it inline (same line as the reply, JSON right after it), not
+// on its own line. Tolerant: anything unparseable yields no facts and the whole
+// text is kept as the reply, so extraction never breaks a conversation.
 export function parseChatReply(raw: string): { reply: string; facts: string[] } {
-  const lines = raw.split("\n");
-  const idx = lines.findIndex((l) => l.trim() === FACTS_SENTINEL);
+  const idx = raw.indexOf(FACTS_SENTINEL);
   if (idx === -1) return { reply: raw.trim(), facts: [] };
 
-  const reply = lines.slice(0, idx).join("\n").trim();
-  const rest = lines.slice(idx + 1).join("\n").trim();
+  const reply = raw.slice(0, idx).trim();
+  const rest = raw.slice(idx + FACTS_SENTINEL.length).trim();
   let facts: string[] = [];
   try {
     const parsed = JSON.parse(rest);

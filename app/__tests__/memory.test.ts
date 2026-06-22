@@ -72,6 +72,16 @@ describe("parseChatReply", () => {
       facts: ["is vegetarian", "works at La Bodega"],
     });
   });
+
+  it("splits an inline sentinel (no surrounding newlines)", () => {
+    // Real-world free-model output: everything on one line, JSON right after
+    // the sentinel with no space.
+    const raw = 'Got it, thanks for letting me know. <<FACTS>>["is vegetarian","my wife is Ana"]';
+    expect(parseChatReply(raw)).toEqual({
+      reply: "Got it, thanks for letting me know.",
+      facts: ["is vegetarian", "my wife is Ana"],
+    });
+  });
 });
 
 describe("buildExtractionInstructions", () => {
