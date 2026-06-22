@@ -1,16 +1,15 @@
 import type { BramApi } from "../core/api";
-import type {
-  PlanRepository,
-  PreferenceRepository,
-  TopicRepository,
-  MemoryRepository,
-} from "../core/repository";
+import type { PlanRepository, PreferenceRepository, TopicRepository } from "../core/repository";
+import type { LifeStore } from "../core/life-store";
 import type { Notifier } from "../notify/notifier";
 import type { CalendarService } from "../calendar/calendar";
+import type { Entity, LifeEvent } from "../core/types";
 import { morningBriefing } from "../core/briefing-service";
 import { capturePlans } from "../core/capture-service";
 import { buildChatSystemPrompt, getPersonaName } from "../core/persona";
-import { isRememberIntent, stripRememberLead, buildRecall, parseChatReply } from "../core/memory";
+import { isRememberIntent, stripRememberLead, parseChatReply, parseRoughDate } from "../core/memory";
+import { deriveLinks } from "../core/linking";
+import { tokenize, buildContext, type ContextSnapshot } from "../core/context";
 
 export type TurnResult =
   | { kind: "briefing"; text: string }
@@ -29,7 +28,7 @@ export async function runTurn(
     plans: PlanRepository;
     topics: TopicRepository;
     prefs: PreferenceRepository;
-    memories: MemoryRepository;
+    store: LifeStore;
     notifier: Notifier;
     calendar: CalendarService;
     now: number;
@@ -49,12 +48,11 @@ export async function runTurn(
     return { kind: "briefing", text };
   }
 
-  // "Remember that…" → store a durable fact. Checked before capture so it isn't
-  // parsed as a plan. Empty fact (nothing after the lead) falls through to chat.
+  // "Remember that…" → store a durable fact entity. Checked before capture.
   if (isRememberIntent(utterance)) {
     const fact = stripRememberLead(utterance);
     if (fact) {
-      await deps.memories.add({ id: deps.newId(), text: fact, createdAt: deps.now });
+      await deps.store.upsertEntity("fact", fact, null, deps.now, deps.newId);
       return { kind: "remember", text: "Got it — I'll remember that." };
     }
   }
@@ -71,23 +69,40 @@ export async function runTurn(
     };
   }
 
-  // Nothing to capture and not a briefing → just talk back as the persona.
+  // Conversational turn: inject a relevant slice of the life-model, then extract
+  // any new typed items the model surfaced and link them.
   // ponytail: capture-first means 2 LLM calls per chat turn; add an intent
   // classifier (one call) if free-tier rate limits start biting.
   const persona = await getPersonaName(deps.prefs);
-  const known = await deps.memories.list();
-  const recall = buildRecall(known);
+  const tokens = tokenize(utterance);
+  const snapshot: ContextSnapshot = {
+    people: await deps.store.people(),
+    goals: await deps.store.goals(),
+    recentEvents: await deps.store.recentEvents(10),
+    searchHits: await deps.store.search(tokens),
+  };
+  const recall = buildContext(snapshot);
   const raw = await deps.api.chat(buildChatSystemPrompt(persona, recall), [
     { role: "user", content: utterance },
   ]);
-  const { reply, facts } = parseChatReply(raw);
+  const { reply, items } = parseChatReply(raw);
 
-  // Silently store genuinely new facts (case-insensitive dedup, max 3/turn).
-  const seen = new Set(known.map((m) => m.text.toLowerCase()));
-  for (const fact of facts.slice(0, 3)) {
-    if (seen.has(fact.toLowerCase())) continue;
-    seen.add(fact.toLowerCase());
-    await deps.memories.add({ id: deps.newId(), text: fact, createdAt: deps.now });
+  const turnEntities: Entity[] = [];
+  const turnEvents: LifeEvent[] = [];
+  for (const item of items) {
+    if (item.kind === "event") {
+      turnEvents.push(await deps.store.addEvent(item.text, parseRoughDate(item.date), deps.now, deps.newId));
+    } else {
+      turnEntities.push(
+        await deps.store.upsertEntity(item.type, item.text, item.attributes ?? null, deps.now, deps.newId)
+      );
+    }
+  }
+  if (turnEvents.length) {
+    const known = [...(await deps.store.people()), ...(await deps.store.goals()), ...(await deps.store.facts())];
+    for (const [from, to] of deriveLinks({ entities: turnEntities, events: turnEvents }, known)) {
+      await deps.store.link(from, to);
+    }
   }
 
   return { kind: "chat", text: reply };

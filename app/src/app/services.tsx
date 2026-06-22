@@ -4,8 +4,8 @@ import type {
   PlanRepository,
   PreferenceRepository,
   TopicRepository,
-  MemoryRepository,
 } from "../core/repository";
+import type { LifeStore } from "../core/life-store";
 import type { Speaker } from "../speech/tts";
 import type { VoiceCapture } from "../speech/stt";
 import type { Notifier } from "../notify/notifier";
@@ -16,7 +16,7 @@ export interface Services {
   plans: PlanRepository;
   topics: TopicRepository;
   prefs: PreferenceRepository;
-  memories: MemoryRepository;
+  store: LifeStore;
   speaker: Speaker;
   voice: VoiceCapture;
   notifier: Notifier;

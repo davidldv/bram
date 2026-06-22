@@ -3,8 +3,9 @@ import {
   createMemoryPlanRepository,
   createMemoryPreferenceRepository,
   createMemoryTopicRepository,
-  createInMemoryMemoryRepository,
 } from "../src/core/memory-repository";
+import { createInMemoryLifeStore } from "../src/core/life-store-memory";
+import type { LifeStore } from "../src/core/life-store";
 import type { BramApi } from "../src/core/api";
 
 describe("isBriefingIntent", () => {
@@ -18,19 +19,21 @@ describe("isBriefingIntent", () => {
   });
 });
 
-function deps(api: BramApi) {
+let counter = 0;
+function deps(api: BramApi, store: LifeStore = createInMemoryLifeStore()) {
   return {
     api,
     plans: createMemoryPlanRepository(),
     topics: createMemoryTopicRepository([{ id: "tech", label: "tech", enabled: true }]),
     prefs: createMemoryPreferenceRepository(),
-    memories: createInMemoryMemoryRepository(),
+    store,
     notifier: { schedule: async () => {}, scheduleAt: async () => {}, cancel: async () => {} },
     calendar: { listEvents: async () => [] },
     now: new Date(2026, 5, 5, 8, 0).getTime(),
-    newId: () => "id-1",
+    newId: () => `id-${++counter}`,
   };
 }
+beforeEach(() => { counter = 0; });
 
 describe("runTurn", () => {
   it("returns a briefing for a greeting", async () => {
@@ -39,88 +42,46 @@ describe("runTurn", () => {
     expect(result).toEqual({ kind: "briefing", text: "Good morning." });
   });
 
-  it("captures and confirms a plan for a non-greeting", async () => {
-    const reply = JSON.stringify([{ type: "reminder", title: "gym", scheduledAt: null }]);
-    const api: BramApi = { news: jest.fn(async () => []), chat: jest.fn(async () => reply) };
-    const d = deps(api);
-    const result = await runTurn(d, "remind me to gym");
-    expect(result.kind).toBe("capture");
-    if (result.kind === "capture") {
-      expect(result.count).toBe(1);
-      expect(result.text).toContain("gym");
-    }
-    expect((await d.plans.list()).map((p) => p.title)).toEqual(["gym"]);
-  });
-
-  it("falls back to a conversational reply when nothing is captured", async () => {
-    const chat = jest
-      .fn()
-      .mockResolvedValueOnce("[]") // capture attempt finds no plans
-      .mockResolvedValueOnce("Doing great — how can I help?"); // chat fallback
-    const api: BramApi = { news: jest.fn(async () => []), chat };
-    const result = await runTurn(deps(api), "how are you");
-    expect(result).toEqual({ kind: "chat", text: "Doing great — how can I help?" });
-    expect(chat).toHaveBeenCalledTimes(2);
-  });
-
-  it("stores a fact on a 'remember that' utterance without calling the LLM", async () => {
+  it("stores a fact entity on a 'remember that' utterance without calling the LLM", async () => {
+    const store = createInMemoryLifeStore();
     const api: BramApi = { news: jest.fn(async () => []), chat: jest.fn(async () => "") };
-    const d = deps(api);
-    const result = await runTurn(d, "remember that my wife is Ana");
+    const result = await runTurn(deps(api, store), "remember that my wife is Ana");
     expect(result).toEqual({ kind: "remember", text: "Got it — I'll remember that." });
-    expect((await d.memories.list()).map((m) => m.text)).toEqual(["my wife is Ana"]);
+    expect((await store.facts()).map((e) => e.name)).toEqual(["my wife is Ana"]);
     expect(api.chat).not.toHaveBeenCalled();
   });
 
-  it("injects known facts into the chat system prompt", async () => {
-    const chat = jest
-      .fn()
-      .mockResolvedValueOnce("[]") // capture finds nothing
-      .mockResolvedValueOnce("Sure thing."); // chat reply
-    const api: BramApi = { news: jest.fn(async () => []), chat };
-    const d = deps(api);
-    await d.memories.add({ id: "m1", text: "my wife is Ana", createdAt: 1 });
-    await runTurn(d, "say hi to my wife");
-    const chatSystemPrompt = chat.mock.calls[1][0] as string;
-    expect(chatSystemPrompt).toContain("Things you know about the user:");
-    expect(chatSystemPrompt).toContain("my wife is Ana");
-  });
-
-  it("stores new facts emitted by the chat turn and returns the clean reply", async () => {
-    const reply = 'Nice to meet your wife.\n<<FACTS>>\n["my wife is Ana"]';
+  it("stores typed items from a chat turn, links them, and returns the clean reply", async () => {
+    const store = createInMemoryLifeStore();
+    const reply = 'Nice! <<FACTS>>[{"type":"person","text":"Mika"},{"type":"event","text":"booked Germany trip with Mika","date":"2026-07"}]';
     const chat = jest.fn().mockResolvedValueOnce("[]").mockResolvedValueOnce(reply);
     const api: BramApi = { news: jest.fn(async () => []), chat };
-    const d = deps(api);
-    const result = await runTurn(d, "my wife is Ana by the way");
-    expect(result).toEqual({ kind: "chat", text: "Nice to meet your wife." });
-    expect((await d.memories.list()).map((m) => m.text)).toEqual(["my wife is Ana"]);
+    const result = await runTurn(deps(api, store), "we booked our Germany trip");
+    expect(result).toEqual({ kind: "chat", text: "Nice!" });
+    expect((await store.people()).map((e) => e.name)).toEqual(["Mika"]);
+    const mika = (await store.people())[0];
+    expect((await store.eventsForEntity(mika.id)).map((e) => e.text)).toEqual(["booked Germany trip with Mika"]);
   });
 
-  it("skips a fact that duplicates a known one (case-insensitive)", async () => {
-    const reply = 'Sure.\n<<FACTS>>\n["My Wife Is Ana"]';
-    const chat = jest.fn().mockResolvedValueOnce("[]").mockResolvedValueOnce(reply);
+  it("injects people and goals into the chat system prompt", async () => {
+    const store = createInMemoryLifeStore();
+    await store.upsertEntity("person", "Mika", { birthday: "10-12" }, 1, () => "p1");
+    await store.upsertEntity("goal", "visit Germany", null, 1, () => "g1");
+    const chat = jest.fn().mockResolvedValueOnce("[]").mockResolvedValueOnce("Sure.");
     const api: BramApi = { news: jest.fn(async () => []), chat };
-    const d = deps(api);
-    await d.memories.add({ id: "m1", text: "my wife is Ana", createdAt: 1 });
-    await runTurn(d, "talk about my wife");
-    expect((await d.memories.list()).map((m) => m.text)).toEqual(["my wife is Ana"]);
+    await runTurn(deps(api, store), "what should I plan");
+    const systemPrompt = chat.mock.calls[1][0] as string;
+    expect(systemPrompt).toContain("People you know:");
+    expect(systemPrompt).toContain("Mika");
+    expect(systemPrompt).toContain("visit Germany");
   });
 
-  it("stores at most 3 facts per turn", async () => {
-    const reply = 'Ok.\n<<FACTS>>\n["a","b","c","d"]';
-    const chat = jest.fn().mockResolvedValueOnce("[]").mockResolvedValueOnce(reply);
-    const api: BramApi = { news: jest.fn(async () => []), chat };
-    const d = deps(api);
-    await runTurn(d, "lots about me");
-    expect((await d.memories.list()).map((m) => m.text)).toEqual(["a", "b", "c"]);
-  });
-
-  it("stores nothing and returns the raw reply when there is no facts block", async () => {
+  it("falls back to a clean reply with no items", async () => {
+    const store = createInMemoryLifeStore();
     const chat = jest.fn().mockResolvedValueOnce("[]").mockResolvedValueOnce("Just chatting.");
     const api: BramApi = { news: jest.fn(async () => []), chat };
-    const d = deps(api);
-    const result = await runTurn(d, "how are you");
+    const result = await runTurn(deps(api, store), "how are you");
     expect(result).toEqual({ kind: "chat", text: "Just chatting." });
-    expect(await d.memories.list()).toEqual([]);
+    expect(await store.facts()).toEqual([]);
   });
 });

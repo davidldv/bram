@@ -1,4 +1,4 @@
-import type { Plan, NewsTopic, Memory } from "../core/types";
+import type { Plan, NewsTopic, Memory, Entity, LifeEvent } from "../core/types";
 
 export interface PlanRow {
   id: string;
@@ -38,4 +38,39 @@ export interface MemoryRow {
 
 export function rowToMemory(r: MemoryRow): Memory {
   return { id: r.id, text: r.text, createdAt: r.created_at };
+}
+
+export interface EntityRow {
+  id: string;
+  type: string;
+  name: string;
+  attributes: string | null;
+  last_mentioned_at: number;
+  created_at: number;
+}
+
+export function rowToEntity(r: EntityRow): Entity {
+  let attributes: Record<string, unknown> | null = null;
+  if (r.attributes) {
+    try { attributes = JSON.parse(r.attributes); } catch { attributes = null; }
+  }
+  return {
+    id: r.id,
+    type: r.type as Entity["type"],
+    name: r.name,
+    attributes,
+    lastMentionedAt: r.last_mentioned_at,
+    createdAt: r.created_at,
+  };
+}
+
+export interface EventRow {
+  id: string;
+  text: string;
+  occurred_at: number | null;
+  created_at: number;
+}
+
+export function rowToEvent(r: EventRow): LifeEvent {
+  return { id: r.id, text: r.text, occurredAt: r.occurred_at, createdAt: r.created_at };
 }
