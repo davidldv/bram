@@ -1,4 +1,4 @@
-import { isRememberIntent, stripRememberLead, buildRecall, parseChatReply } from "../src/core/memory";
+import { isRememberIntent, stripRememberLead, buildRecall, parseChatReply, buildExtractionInstructions } from "../src/core/memory";
 import type { Memory } from "../src/core/types";
 
 describe("isRememberIntent", () => {
@@ -71,5 +71,13 @@ describe("parseChatReply", () => {
       reply: "Done.",
       facts: ["is vegetarian", "works at La Bodega"],
     });
+  });
+});
+
+describe("buildExtractionInstructions", () => {
+  it("documents the sentinel and the new-facts-only rule", () => {
+    const text = buildExtractionInstructions();
+    expect(text).toContain("<<FACTS>>");
+    expect(text).toMatch(/only.*not already/i);
   });
 });

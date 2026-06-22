@@ -1,4 +1,5 @@
 import type { PreferenceRepository } from "./repository";
+import { buildExtractionInstructions } from "./memory";
 
 export const PERSONA_KEY = "persona_name";
 export const DEFAULT_PERSONA = "Zayn";
@@ -22,5 +23,6 @@ export function buildChatSystemPrompt(name: string, recall = ""): string {
     "Use plain text only — no markdown, lists, code, or emoji.",
   ];
   if (recall) lines.push("", recall);
+  lines.push("", buildExtractionInstructions());
   return lines.join("\n");
 }
