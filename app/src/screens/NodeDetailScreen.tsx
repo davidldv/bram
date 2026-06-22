@@ -26,13 +26,17 @@ export function NodeDetailScreen({
   useEffect(() => {
     let active = true;
     (async () => {
-      const all = await store.allEntities();
-      const e = all.find((x) => x.id === entityId) ?? null;
+      const [all, evs, nbs] = await Promise.all([
+        store.allEntities(),
+        store.eventsForEntity(entityId),
+        store.entityNeighbors(entityId),
+      ]);
       if (!active) return;
+      const e = all.find((x) => x.id === entityId) ?? null;
       setEntity(e);
       setName(e?.name ?? "");
-      setEvents(await store.eventsForEntity(entityId));
-      setNeighbors(await store.entityNeighbors(entityId));
+      setEvents(evs);
+      setNeighbors(nbs);
     })();
     return () => {
       active = false;
@@ -43,7 +47,7 @@ export function NodeDetailScreen({
     if (!entity) return;
     setError("");
     try {
-      const updated = await store.updateEntity(entity.id, name, entity.attributes);
+      const updated = await store.updateEntity(entity.id, name.trim(), entity.attributes);
       setEntity(updated);
     } catch {
       setError("That name is already taken.");
