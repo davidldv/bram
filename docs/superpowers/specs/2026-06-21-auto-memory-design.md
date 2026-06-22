@@ -58,10 +58,13 @@ store nothing.
 
 1. **`core/memory.ts`** (extend, pure)
    - `parseChatReply(raw: string): { reply: string; facts: string[] }`
-     - Split `raw` on the first `<<FACTS>>` line.
+     - Split `raw` on the first `<<FACTS>>` **substring** (not a whole line —
+       free models emit it inline, e.g. `reply text <<FACTS>>["fact"]` with no
+       surrounding newlines; line-based matching missed this and leaked the
+       sentinel into the spoken reply).
      - No sentinel → `{ reply: raw.trim(), facts: [] }`.
      - Sentinel present → `reply` = text before (trimmed); attempt
-       `JSON.parse` of the text after.
+       `JSON.parse` of the text after (trimmed).
      - Parse failure, non-array result, or non-string entries → those are dropped;
        on total parse failure return `facts: []` (reply still kept).
      - Trim each fact, drop empties.
