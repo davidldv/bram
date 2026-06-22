@@ -3,11 +3,12 @@ import { Pressable, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, space } from "./theme";
 
-export type Tab = "talk" | "agenda" | "settings";
+export type Tab = "talk" | "agenda" | "graph" | "settings";
 
 const ITEMS: { key: Tab; icon: keyof typeof Ionicons.glyphMap; label: string }[] = [
   { key: "talk", icon: "mic", label: "Talk" },
   { key: "agenda", icon: "calendar", label: "Agenda" },
+  { key: "graph", icon: "git-network", label: "Graph" },
   { key: "settings", icon: "settings", label: "Settings" },
 ];
 

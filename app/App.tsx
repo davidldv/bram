@@ -6,6 +6,8 @@ import { buildServices } from "./src/app/build-services";
 import { syncProactiveNotifications } from "./src/core/proactivity";
 import { ConversationScreen } from "./src/screens/ConversationScreen";
 import { AgendaScreen } from "./src/screens/AgendaScreen";
+import { GraphScreen } from "./src/screens/GraphScreen";
+import { NodeDetailScreen } from "./src/screens/NodeDetailScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
 import { Screen } from "./src/ui/Screen";
 import { TabBar, type Tab } from "./src/ui/TabBar";
@@ -14,6 +16,7 @@ import { colors, font, space } from "./src/ui/theme";
 export default function App() {
   const [services, setServices] = useState<Services | null>(null);
   const [tab, setTab] = useState<Tab>("talk");
+  const [graphSel, setGraphSel] = useState<string | null>(null);
 
   useEffect(() => {
     buildServices().then(setServices);
@@ -48,9 +51,21 @@ export default function App() {
         <View style={styles.body}>
           {tab === "talk" && <ConversationScreen />}
           {tab === "agenda" && <AgendaScreen />}
+          {tab === "graph" &&
+            (graphSel ? (
+              <NodeDetailScreen entityId={graphSel} onBack={() => setGraphSel(null)} onNavigate={setGraphSel} />
+            ) : (
+              <GraphScreen onSelect={setGraphSel} />
+            ))}
           {tab === "settings" && <SettingsScreen />}
         </View>
-        <TabBar active={tab} onChange={setTab} />
+        <TabBar
+          active={tab}
+          onChange={(t) => {
+            if (t !== "graph") setGraphSel(null);
+            setTab(t);
+          }}
+        />
       </View>
     </ServicesProvider>
   );

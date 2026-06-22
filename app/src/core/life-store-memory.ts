@@ -61,5 +61,59 @@ export function createInMemoryLifeStore(
         }
       }
     },
+    async allEntities() {
+      return [...entities];
+    },
+    async graphEdges() {
+      const eventIds = new Set(events.map((e) => e.id));
+      const byEvent = new Map<string, string[]>();
+      for (const [from, to] of links) {
+        if (eventIds.has(from)) {
+          const arr = byEvent.get(from) ?? [];
+          arr.push(to);
+          byEvent.set(from, arr);
+        }
+      }
+      const seen = new Set<string>();
+      const out: Array<[string, string]> = [];
+      for (const ents of byEvent.values()) {
+        // ponytail: O(group²) pair scan; fine at personal scale (tens of entities)
+        for (let i = 0; i < ents.length; i++) {
+          for (let j = i + 1; j < ents.length; j++) {
+            if (ents[i] === ents[j]) continue;
+            const [a, b] = ents[i] < ents[j] ? [ents[i], ents[j]] : [ents[j], ents[i]];
+            const key = `${a} ${b}`;
+            if (!seen.has(key)) {
+              seen.add(key);
+              out.push([a, b]);
+            }
+          }
+        }
+      }
+      return out;
+    },
+    async entityNeighbors(id) {
+      const eventIds = new Set(events.map((e) => e.id));
+      const myEvents = new Set(
+        links.filter(([from, to]) => to === id && eventIds.has(from)).map(([from]) => from)
+      );
+      const neighborIds = new Set<string>();
+      for (const [from, to] of links) {
+        if (eventIds.has(from) && myEvents.has(from) && to !== id) neighborIds.add(to);
+      }
+      return entities.filter((e) => neighborIds.has(e.id));
+    },
+    async updateEntity(id, name, attributes) {
+      const e = entities.find((x) => x.id === id);
+      if (!e) throw new Error("updateEntity: entity not found");
+      const key = name.trim().toLowerCase();
+      const collision = entities.find(
+        (x) => x.id !== id && x.type === e.type && x.name.toLowerCase() === key
+      );
+      if (collision) throw new Error("updateEntity: name already exists");
+      e.name = name.trim();
+      e.attributes = attributes;
+      return e;
+    },
   };
 }
