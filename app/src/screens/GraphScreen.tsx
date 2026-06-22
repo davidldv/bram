@@ -49,8 +49,9 @@ export function GraphScreen({ onSelect }: { onSelect: (entityId: string) => void
             touches[0].pageX - touches[1].pageX,
             touches[0].pageY - touches[1].pageY
           );
-          if (!start.current.dist) start.current.dist = d;
-          t.current.scale = clamp(start.current.scale * (d / start.current.dist), 0.3, 3);
+          if (start.current.dist === 0) start.current.dist = d;
+          const ratio = start.current.dist > 0 ? d / start.current.dist : 1;
+          t.current.scale = clamp(start.current.scale * ratio, 0.3, 3);
         } else {
           t.current.x = start.current.x + g.dx;
           t.current.y = start.current.y + g.dy;
@@ -99,8 +100,8 @@ export function GraphScreen({ onSelect }: { onSelect: (entityId: string) => void
             {nodes.map((n) => (
               <React.Fragment key={n.id}>
                 <Circle
-                  cx={n.x}
-                  cy={n.y}
+                  cx={n.x ?? 0}
+                  cy={n.y ?? 0}
                   r={clamp(8 + n.degree * 2, 8, 22)}
                   fill={NODE_COLOR[n.type]}
                   onPress={() => onSelect(n.id)}
