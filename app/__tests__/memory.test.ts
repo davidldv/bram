@@ -1,4 +1,4 @@
-import { isRememberIntent, stripRememberLead, buildRecall, parseChatReply, buildExtractionInstructions } from "../src/core/memory";
+import { isRememberIntent, stripRememberLead, buildRecall, parseChatReply, parseRoughDate, buildExtractionInstructions } from "../src/core/memory";
 import type { Memory } from "../src/core/types";
 
 describe("isRememberIntent", () => {
@@ -44,50 +44,84 @@ describe("buildRecall", () => {
 
 describe("parseChatReply", () => {
   it("returns reply only when there is no sentinel", () => {
-    expect(parseChatReply("Hello there.")).toEqual({ reply: "Hello there.", facts: [] });
+    expect(parseChatReply("Hello there.")).toEqual({ reply: "Hello there.", items: [] });
   });
 
-  it("splits reply from a facts array", () => {
-    const raw = 'Sure, mornings will be light.\n<<FACTS>>\n["prefers light mornings"]';
+  it("treats a plain string item as a fact entity (back-compat)", () => {
+    const raw = 'Sure.\n<<FACTS>>\n["is vegetarian"]';
     expect(parseChatReply(raw)).toEqual({
-      reply: "Sure, mornings will be light.",
-      facts: ["prefers light mornings"],
+      reply: "Sure.",
+      items: [{ kind: "entity", type: "fact", text: "is vegetarian" }],
     });
   });
 
-  it("yields no facts for an empty array after the sentinel", () => {
-    const raw = "Got it.\n<<FACTS>>\n[]";
-    expect(parseChatReply(raw)).toEqual({ reply: "Got it.", facts: [] });
-  });
-
-  it("keeps the reply and drops facts when the JSON is malformed", () => {
-    const raw = "Okay.\n<<FACTS>>\n[not valid json";
-    expect(parseChatReply(raw)).toEqual({ reply: "Okay.", facts: [] });
-  });
-
-  it("trims facts and drops empty or non-string entries", () => {
-    const raw = 'Done.\n<<FACTS>>\n["  is vegetarian  ", "", 5, "works at La Bodega"]';
+  it("parses typed person / goal / event objects from an inline sentinel", () => {
+    const raw = 'Got it. <<FACTS>>[{"type":"person","text":"Mika"},{"type":"goal","text":"visit Germany"},{"type":"event","text":"booked Germany trip","date":"2026-07"}]';
     expect(parseChatReply(raw)).toEqual({
-      reply: "Done.",
-      facts: ["is vegetarian", "works at La Bodega"],
+      reply: "Got it.",
+      items: [
+        { kind: "entity", type: "person", text: "Mika" },
+        { kind: "entity", type: "goal", text: "visit Germany" },
+        { kind: "event", text: "booked Germany trip", date: "2026-07" },
+      ],
     });
   });
 
-  it("splits an inline sentinel (no surrounding newlines)", () => {
-    // Real-world free-model output: everything on one line, JSON right after
-    // the sentinel with no space.
-    const raw = 'Got it, thanks for letting me know. <<FACTS>>["is vegetarian","my wife is Ana"]';
-    expect(parseChatReply(raw)).toEqual({
-      reply: "Got it, thanks for letting me know.",
-      facts: ["is vegetarian", "my wife is Ana"],
-    });
+  it("keeps person attributes when present", () => {
+    const raw = 'Ok. <<FACTS>>[{"type":"person","text":"Mika","attributes":{"birthday":"10-12"}}]';
+    expect(parseChatReply(raw).items).toEqual([
+      { kind: "entity", type: "person", text: "Mika", attributes: { birthday: "10-12" } },
+    ]);
+  });
+
+  it("demotes missing or unknown type to a fact", () => {
+    const raw = 'Hi. <<FACTS>>[{"text":"likes sushi"},{"type":"pet","text":"has a dog"}]';
+    expect(parseChatReply(raw).items).toEqual([
+      { kind: "entity", type: "fact", text: "likes sushi" },
+      { kind: "entity", type: "fact", text: "has a dog" },
+    ]);
+  });
+
+  it("treats an event with no date as date null", () => {
+    const raw = 'Ok. <<FACTS>>[{"type":"event","text":"got a new job"}]';
+    expect(parseChatReply(raw).items).toEqual([{ kind: "event", text: "got a new job", date: null }]);
+  });
+
+  it("drops items with no usable text and trims text", () => {
+    const raw = 'Done. <<FACTS>>[{"type":"person","text":"  Ana  "},{"type":"fact","text":""},5]';
+    expect(parseChatReply(raw).items).toEqual([{ kind: "entity", type: "person", text: "Ana" }]);
+  });
+
+  it("keeps the reply and yields no items on malformed JSON", () => {
+    expect(parseChatReply("Okay. <<FACTS>>[not json")).toEqual({ reply: "Okay.", items: [] });
+  });
+
+  it("caps at 5 items per turn", () => {
+    const raw = 'Ok. <<FACTS>>[{"type":"fact","text":"a"},{"type":"fact","text":"b"},{"type":"fact","text":"c"},{"type":"fact","text":"d"},{"type":"fact","text":"e"},{"type":"fact","text":"f"}]';
+    expect(parseChatReply(raw).items.map((i) => (i.kind === "entity" ? i.text : ""))).toEqual(["a", "b", "c", "d", "e"]);
+  });
+});
+
+describe("parseRoughDate", () => {
+  it("parses YYYY-MM to the first of that month", () => {
+    expect(parseRoughDate("2026-07")).toBe(new Date(2026, 6, 1).getTime());
+  });
+  it("parses YYYY-MM-DD", () => {
+    expect(parseRoughDate("2026-07-12")).toBe(new Date(2026, 6, 12).getTime());
+  });
+  it("returns null for null, empty, or garbage", () => {
+    expect(parseRoughDate(null)).toBeNull();
+    expect(parseRoughDate("")).toBeNull();
+    expect(parseRoughDate("next week")).toBeNull();
+    expect(parseRoughDate("2026-13")).toBeNull();
   });
 });
 
 describe("buildExtractionInstructions", () => {
-  it("documents the sentinel and the new-facts-only rule", () => {
+  it("documents the typed object format and the sentinel", () => {
     const text = buildExtractionInstructions();
     expect(text).toContain("<<FACTS>>");
-    expect(text).toMatch(/only.*not already/i);
+    expect(text).toContain('"type"');
+    expect(text).toMatch(/only new/i);
   });
 });
