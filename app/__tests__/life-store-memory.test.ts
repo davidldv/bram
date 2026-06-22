@@ -56,4 +56,14 @@ describe("createInMemoryLifeStore", () => {
     const hits = await s.search(["gift"]);
     expect(hits.map((x) => ("text" in x ? x.text : x.name))).toEqual(["gift idea"]);
   });
+
+  it("deleteEntity removes orphan links (from_id or to_id = id)", async () => {
+    const s = createInMemoryLifeStore();
+    const person = await s.upsertEntity("person", "Alice", null, 1, newId);
+    const event = await s.addEvent("birthday party", null, 1, newId);
+    await s.link(event.id, person.id);
+    expect((await s.eventsForEntity(person.id)).map((x) => x.text)).toEqual(["birthday party"]);
+    await s.deleteEntity(person.id);
+    expect(await s.eventsForEntity(person.id)).toEqual([]);
+  });
 });

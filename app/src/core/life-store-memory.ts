@@ -53,6 +53,13 @@ export function createInMemoryLifeStore(
     async deleteEntity(id) {
       const i = entities.findIndex((e) => e.id === id);
       if (i >= 0) entities.splice(i, 1);
+      // Remove all links where this entity is the source or target
+      for (let j = links.length - 1; j >= 0; j--) {
+        const [from, to] = links[j];
+        if (from === id || to === id) {
+          links.splice(j, 1);
+        }
+      }
     },
   };
 }
