@@ -1,4 +1,4 @@
-import { getPersonaName, setPersonaName, DEFAULT_PERSONA } from "../src/core/persona";
+import { getPersonaName, setPersonaName, DEFAULT_PERSONA, buildChatSystemPrompt } from "../src/core/persona";
 import { createMemoryPreferenceRepository } from "../src/core/memory-repository";
 
 describe("persona", () => {
@@ -20,5 +20,12 @@ describe("persona", () => {
     expect(await getPersonaName(prefs)).toBe("Zayn");
     await setPersonaName(prefs, "  Otto  ");
     expect(await getPersonaName(prefs)).toBe("Otto");
+  });
+});
+
+describe("buildChatSystemPrompt", () => {
+  it("includes the fact-extraction protocol", () => {
+    const prompt = buildChatSystemPrompt("Bram", "");
+    expect(prompt).toContain("<<FACTS>>");
   });
 });

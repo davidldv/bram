@@ -1,4 +1,4 @@
-import { isRememberIntent, stripRememberLead, buildRecall } from "../src/core/memory";
+import { isRememberIntent, stripRememberLead, buildRecall, parseChatReply, buildExtractionInstructions } from "../src/core/memory";
 import type { Memory } from "../src/core/types";
 
 describe("isRememberIntent", () => {
@@ -39,5 +39,45 @@ describe("buildRecall", () => {
     expect(buildRecall(mems)).toBe(
       "Things you know about the user:\n- my wife is Ana\n- I take meds at 9am"
     );
+  });
+});
+
+describe("parseChatReply", () => {
+  it("returns reply only when there is no sentinel", () => {
+    expect(parseChatReply("Hello there.")).toEqual({ reply: "Hello there.", facts: [] });
+  });
+
+  it("splits reply from a facts array", () => {
+    const raw = 'Sure, mornings will be light.\n<<FACTS>>\n["prefers light mornings"]';
+    expect(parseChatReply(raw)).toEqual({
+      reply: "Sure, mornings will be light.",
+      facts: ["prefers light mornings"],
+    });
+  });
+
+  it("yields no facts for an empty array after the sentinel", () => {
+    const raw = "Got it.\n<<FACTS>>\n[]";
+    expect(parseChatReply(raw)).toEqual({ reply: "Got it.", facts: [] });
+  });
+
+  it("keeps the reply and drops facts when the JSON is malformed", () => {
+    const raw = "Okay.\n<<FACTS>>\n[not valid json";
+    expect(parseChatReply(raw)).toEqual({ reply: "Okay.", facts: [] });
+  });
+
+  it("trims facts and drops empty or non-string entries", () => {
+    const raw = 'Done.\n<<FACTS>>\n["  is vegetarian  ", "", 5, "works at La Bodega"]';
+    expect(parseChatReply(raw)).toEqual({
+      reply: "Done.",
+      facts: ["is vegetarian", "works at La Bodega"],
+    });
+  });
+});
+
+describe("buildExtractionInstructions", () => {
+  it("documents the sentinel and the new-facts-only rule", () => {
+    const text = buildExtractionInstructions();
+    expect(text).toContain("<<FACTS>>");
+    expect(text).toMatch(/only.*not already/i);
   });
 });
