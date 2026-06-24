@@ -1,11 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, TextInput, View, Pressable, StyleSheet, Alert } from "react-native";
+import { ScrollView, Text, TextInput, View, StyleSheet, Alert } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { useServices } from "../app/services";
-import type { Entity, LifeEvent } from "../core/types";
+import type { Entity, EntityType, LifeEvent } from "../core/types";
 import { Screen } from "../ui/Screen";
 import { Section } from "../ui/Section";
 import { Card } from "../ui/Card";
+import { GradientButton } from "../ui/GradientButton";
+import { PressableScale } from "../ui/motion";
 import { colors, font, radius, space } from "../ui/theme";
+
+const TYPE_COLOR: Record<EntityType, string> = {
+  person: colors.accent,
+  goal: colors.reminder,
+  fact: colors.task,
+};
 
 export function NodeDetailScreen({
   entityId,
@@ -70,21 +79,27 @@ export function NodeDetailScreen({
   };
 
   const dirty = entity != null && name.trim() !== "" && name.trim() !== entity.name;
+  const tint = entity ? TYPE_COLOR[entity.type] : colors.accent;
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Pressable onPress={onBack} hitSlop={12} accessibilityLabel="Back to graph">
-          <Text style={styles.back}>‹ Graph</Text>
-        </Pressable>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <PressableScale onPress={onBack} hitSlop={12} accessibilityLabel="Back to graph" style={styles.backBtn}>
+          <Ionicons name="chevron-back" size={18} color={colors.accent} />
+          <Text style={styles.back}>Graph</Text>
+        </PressableScale>
 
         {!entity ? (
           <Text style={styles.empty}>Not found.</Text>
         ) : (
           <>
             <View style={styles.titleRow}>
-              <Text style={styles.title}>{entity.name}</Text>
-              <Text style={styles.chip}>{entity.type}</Text>
+              <Text style={styles.title} numberOfLines={2}>
+                {entity.name}
+              </Text>
+              <View style={[styles.chip, { backgroundColor: tint + "22", borderColor: tint + "55" }]}>
+                <Text style={[styles.chipText, { color: tint }]}>{entity.type}</Text>
+              </View>
             </View>
 
             <Section title="Rename">
@@ -97,14 +112,7 @@ export function NodeDetailScreen({
                   placeholderTextColor={colors.muted}
                 />
                 {error !== "" && <Text style={styles.error}>{error}</Text>}
-                <Pressable
-                  onPress={save}
-                  disabled={!dirty}
-                  style={[styles.button, !dirty && styles.buttonOff]}
-                  accessibilityLabel="Save name"
-                >
-                  <Text style={styles.buttonText}>Save</Text>
-                </Pressable>
+                <GradientButton label="Save" onPress={save} disabled={!dirty} accessibilityLabel="Save name" />
               </Card>
             </Section>
 
@@ -128,22 +136,27 @@ export function NodeDetailScreen({
                   <Text style={styles.empty}>Nothing connected yet.</Text>
                 ) : (
                   neighbors.map((nb, i) => (
-                    <Pressable
+                    <PressableScale
                       key={nb.id}
                       onPress={() => onNavigate(nb.id)}
-                      style={[styles.row, i > 0 && styles.divider]}
+                      style={[styles.linkRow, i > 0 && styles.divider]}
                       accessibilityLabel={`Open ${nb.name}`}
                     >
                       <Text style={styles.link}>{nb.name}</Text>
-                    </Pressable>
+                      <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+                    </PressableScale>
                   ))
                 )}
               </Card>
             </Section>
 
-            <Pressable onPress={remove} style={styles.delete} accessibilityLabel="Delete entity">
-              <Text style={styles.deleteText}>Delete</Text>
-            </Pressable>
+            <GradientButton
+              label="Delete"
+              variant="danger"
+              onPress={remove}
+              accessibilityLabel="Delete entity"
+              style={styles.delete}
+            />
           </>
         )}
       </ScrollView>
@@ -152,38 +165,46 @@ export function NodeDetailScreen({
 }
 
 const styles = StyleSheet.create({
-  content: { padding: space.lg, paddingTop: space.xl, paddingBottom: space.xl },
-  back: { color: colors.accent, fontSize: font.body, marginBottom: space.lg },
+  content: { padding: space.lg, paddingTop: space.xl, paddingBottom: space.xxl },
+  backBtn: { flexDirection: "row", alignItems: "center", marginBottom: space.lg },
+  back: { color: colors.accent, fontSize: font.body, fontWeight: font.weight.medium },
   titleRow: { flexDirection: "row", alignItems: "center", marginBottom: space.xl },
-  title: { color: colors.text, fontSize: font.display, fontWeight: font.weight.bold, flex: 1 },
+  title: {
+    color: colors.text,
+    fontSize: font.display,
+    fontWeight: font.weight.bold,
+    letterSpacing: -0.5,
+    flex: 1,
+    marginRight: space.md,
+  },
   chip: {
-    color: colors.muted,
-    fontSize: 12,
-    backgroundColor: colors.surface,
     borderRadius: radius.pill,
+    borderWidth: 1,
     paddingHorizontal: space.md,
     paddingVertical: space.xs,
-    overflow: "hidden",
   },
+  chipText: { fontSize: font.small, fontWeight: font.weight.semibold, textTransform: "capitalize" },
   input: {
     color: colors.text,
     fontSize: font.body,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceHi,
     borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     borderColor: colors.hairline,
     paddingHorizontal: space.md,
     paddingVertical: space.md,
     marginBottom: space.md,
   },
-  error: { color: colors.reminder, fontSize: 12, marginBottom: space.md },
-  button: { backgroundColor: colors.accent, borderRadius: radius.card, paddingVertical: space.md, alignItems: "center" },
-  buttonOff: { backgroundColor: colors.hairline },
-  buttonText: { color: colors.text, fontWeight: font.weight.semibold, fontSize: font.body },
-  row: { color: colors.text, fontSize: font.body, paddingVertical: space.md },
+  error: { color: colors.danger, fontSize: font.small, marginBottom: space.md },
+  row: { color: colors.text, fontSize: font.body, paddingVertical: space.md, lineHeight: 20 },
   divider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.hairline },
-  link: { color: colors.accent, fontSize: font.body },
+  linkRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: space.md,
+  },
+  link: { color: colors.accent, fontSize: font.body, fontWeight: font.weight.medium },
   empty: { color: colors.muted, fontSize: font.body },
-  delete: { marginTop: space.xl, paddingVertical: space.md, alignItems: "center" },
-  deleteText: { color: colors.reminder, fontSize: font.body, fontWeight: font.weight.semibold },
+  delete: { marginTop: space.lg },
 });

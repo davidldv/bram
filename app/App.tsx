@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { ServicesProvider, type Services } from "./src/app/services";
 import { buildServices } from "./src/app/build-services";
@@ -10,6 +10,7 @@ import { GraphScreen } from "./src/screens/GraphScreen";
 import { NodeDetailScreen } from "./src/screens/NodeDetailScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
 import { Screen } from "./src/ui/Screen";
+import { Orb } from "./src/ui/Orb";
 import { TabBar, type Tab } from "./src/ui/TabBar";
 import { colors, font, space } from "./src/ui/theme";
 
@@ -35,10 +36,12 @@ export default function App() {
 
   if (!services) {
     return (
-      <Screen>
+      <Screen ambient>
+        <StatusBar style="light" />
         <View style={styles.loading}>
-          <ActivityIndicator color={colors.accent} />
-          <Text style={styles.loadingText}>Starting Bram…</Text>
+          <Orb state="thinking" onPress={() => {}} disabled />
+          <Text style={styles.brand}>Bram</Text>
+          <Text style={styles.loadingText}>Waking up…</Text>
         </View>
       </Screen>
     );
@@ -75,5 +78,12 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.base },
   body: { flex: 1 },
   loading: { flex: 1, alignItems: "center", justifyContent: "center" },
-  loadingText: { color: colors.muted, fontSize: font.body, marginTop: space.md },
+  brand: {
+    color: colors.text,
+    fontSize: font.hero,
+    fontWeight: font.weight.bold,
+    letterSpacing: -1,
+    marginTop: space.md,
+  },
+  loadingText: { color: colors.muted, fontSize: font.body, marginTop: space.sm },
 });

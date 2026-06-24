@@ -1,12 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, TextInput, View, Switch, Pressable, StyleSheet } from "react-native";
+import { ScrollView, Text, TextInput, View, Switch, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useServices } from "../app/services";
 import { getPersonaName, setPersonaName } from "../core/persona";
 import type { NewsTopic, Entity } from "../core/types";
 import { Screen } from "../ui/Screen";
+import { Header } from "../ui/Header";
 import { Section } from "../ui/Section";
 import { Card } from "../ui/Card";
+import { GradientButton } from "../ui/GradientButton";
+import { PressableScale } from "../ui/motion";
 import { colors, font, radius, space } from "../ui/theme";
 
 export function SettingsScreen() {
@@ -44,8 +47,8 @@ export function SettingsScreen() {
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.header}>Settings</Text>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Header title="Settings" subtitle="Make Bram yours" />
 
         <Section title="Assistant">
           <Card>
@@ -58,14 +61,7 @@ export function SettingsScreen() {
               placeholderTextColor={colors.muted}
               style={styles.input}
             />
-            <Pressable
-              onPress={save}
-              disabled={!dirty}
-              style={[styles.button, !dirty && styles.buttonOff]}
-              accessibilityLabel="Save"
-            >
-              <Text style={styles.buttonText}>Save</Text>
-            </Pressable>
+            <GradientButton label="Save" onPress={save} disabled={!dirty} accessibilityLabel="Save" />
           </Card>
         </Section>
 
@@ -78,7 +74,7 @@ export function SettingsScreen() {
                   value={t.enabled}
                   onValueChange={() => toggle(t)}
                   accessibilityLabel={`toggle ${t.label}`}
-                  trackColor={{ true: colors.accent, false: colors.hairline }}
+                  trackColor={{ true: colors.accent, false: colors.surfaceHi }}
                   thumbColor={colors.text}
                 />
               </View>
@@ -89,18 +85,19 @@ export function SettingsScreen() {
         <Section title="What Bram knows">
           <Card>
             {memories.length === 0 ? (
-              <Text style={styles.empty}>Nothing yet. Say “remember that…” to teach me.</Text>
+              <Text style={styles.empty}>Nothing yet. Say "remember that…" to teach me.</Text>
             ) : (
               memories.map((m, i) => (
                 <View key={m.id} style={[styles.factRow, i > 0 && styles.divider]}>
                   <Text style={styles.factText}>{m.name}</Text>
-                  <Pressable
+                  <PressableScale
                     onPress={() => forget(m.id)}
                     hitSlop={12}
                     accessibilityLabel={`forget: ${m.name}`}
+                    style={styles.forget}
                   >
-                    <Ionicons name="close" size={20} color={colors.muted} />
-                  </Pressable>
+                    <Ionicons name="close" size={18} color={colors.muted} />
+                  </PressableScale>
                 </View>
               ))
             )}
@@ -112,33 +109,19 @@ export function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: space.lg, paddingTop: space.xl, paddingBottom: space.xl },
-  header: {
-    color: colors.text,
-    fontSize: font.display,
-    fontWeight: font.weight.bold,
-    marginBottom: space.xl,
-  },
-  label: { color: colors.muted, fontSize: 12, marginBottom: space.sm },
+  content: { padding: space.lg, paddingTop: space.xl, paddingBottom: space.xxl },
+  label: { color: colors.muted, fontSize: font.small, marginBottom: space.sm, letterSpacing: 0.3 },
   input: {
     color: colors.text,
     fontSize: font.body,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceHi,
     borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     borderColor: colors.hairline,
     paddingHorizontal: space.md,
     paddingVertical: space.md,
     marginBottom: space.md,
   },
-  button: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.card,
-    paddingVertical: space.md,
-    alignItems: "center",
-  },
-  buttonOff: { backgroundColor: colors.hairline },
-  buttonText: { color: colors.text, fontWeight: font.weight.semibold, fontSize: font.body },
   topicRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -155,4 +138,12 @@ const styles = StyleSheet.create({
     paddingVertical: space.md,
   },
   factText: { color: colors.text, fontSize: font.body, flex: 1, marginRight: space.md },
+  forget: {
+    width: 30,
+    height: 30,
+    borderRadius: radius.pill,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surfaceHi,
+  },
 });

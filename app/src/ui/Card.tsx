@@ -1,23 +1,24 @@
 import React from "react";
-import { View, StyleSheet, type ViewStyle } from "react-native";
-import { colors, radius, space } from "./theme";
+import { View, StyleSheet, type StyleProp, type ViewStyle } from "react-native";
+import { colors, radius, shadow, space } from "./theme";
 
 export function Card({
   children,
   style,
 }: {
   children: React.ReactNode;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
 }) {
   return <View style={[styles.card, style]}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surfaceRaised,
-    borderRadius: radius.card,
-    borderWidth: StyleSheet.hairlineWidth,
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    borderWidth: 1,
     borderColor: colors.hairline,
     padding: space.lg,
+    ...shadow.card,
   },
 });

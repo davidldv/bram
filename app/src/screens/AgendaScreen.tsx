@@ -1,16 +1,18 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ScrollView, Text, StyleSheet } from "react-native";
+import { ScrollView, StyleSheet } from "react-native";
 import { useServices } from "../app/services";
 import { getPersonaName } from "../core/persona";
 import type { Plan, CalendarEvent } from "../core/types";
 import { buildAgenda } from "../core/agenda";
 import { dayRange } from "../core/briefing-service";
 import { Screen } from "../ui/Screen";
+import { Header } from "../ui/Header";
 import { Section } from "../ui/Section";
 import { PlanCard } from "../ui/PlanCard";
 import { EventCard } from "../ui/EventCard";
+import { EmptyState } from "../ui/EmptyState";
 import type { PlanGroup } from "../ui/relative-time";
-import { colors, font, space } from "../ui/theme";
+import { space } from "../ui/theme";
 
 const GROUP_TITLE: Record<PlanGroup, string> = {
   today: "Today",
@@ -45,38 +47,40 @@ export function AgendaScreen() {
   };
 
   const groups = buildAgenda(plans, events, now);
+  const subtitle = new Date(now).toLocaleDateString(undefined, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.header}>Agenda</Text>
-        {groups.length === 0 ? (
-          <Text style={styles.empty}>Nothing on your plate. Talk to {persona} to add something.</Text>
-        ) : (
-          groups.map((g) => (
+      {groups.length === 0 ? (
+        <EmptyState
+          icon="sparkles-outline"
+          title="Your day is clear"
+          text={`Nothing on your plate. Talk to ${persona} to add a reminder, task, or event.`}
+        />
+      ) : (
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          <Header title="Agenda" subtitle={subtitle} />
+          {groups.map((g) => (
             <Section key={g.group} title={GROUP_TITLE[g.group]}>
-              {g.items.map((it) =>
+              {g.items.map((it, i) =>
                 it.kind === "plan" ? (
-                  <PlanCard key={`p-${it.plan.id}`} plan={it.plan} now={now} onToggleDone={toggle} />
+                  <PlanCard key={`p-${it.plan.id}`} plan={it.plan} now={now} onToggleDone={toggle} index={i} />
                 ) : (
-                  <EventCard key={`e-${it.event.id}`} event={it.event} now={now} />
+                  <EventCard key={`e-${it.event.id}`} event={it.event} now={now} index={i} />
                 )
               )}
             </Section>
-          ))
-        )}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      )}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  content: { padding: space.lg, paddingTop: space.xl, paddingBottom: space.xl },
-  header: {
-    color: colors.text,
-    fontSize: font.display,
-    fontWeight: font.weight.bold,
-    marginBottom: space.xl,
-  },
-  empty: { color: colors.muted, fontSize: font.body, lineHeight: 22, marginTop: space.xl },
+  content: { padding: space.lg, paddingTop: space.xl, paddingBottom: space.xxl },
 });

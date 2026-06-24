@@ -6,7 +6,7 @@ import { getPersonaName } from "../core/persona";
 import { Screen } from "../ui/Screen";
 import { Orb, type OrbState } from "../ui/Orb";
 import { Bubble } from "../ui/Bubble";
-import { colors, font, space } from "../ui/theme";
+import { colors, font, radius, space } from "../ui/theme";
 
 interface Message {
   role: "user" | "assistant";
@@ -18,6 +18,13 @@ const STATUS: Record<OrbState, (name: string) => string> = {
   listening: () => "Listening…",
   thinking: () => "Thinking…",
   speaking: (n) => `${n} is speaking…`,
+};
+
+const DOT: Record<OrbState, string> = {
+  idle: colors.muted,
+  listening: colors.accentCyan,
+  thinking: colors.accent2,
+  speaking: colors.accent,
 };
 
 export function ConversationScreen() {
@@ -67,19 +74,37 @@ export function ConversationScreen() {
   return (
     <Screen ambient>
       <View style={styles.root}>
-        <ScrollView
-          ref={scroller}
-          style={styles.log}
-          contentContainerStyle={styles.logContent}
-          onContentSizeChange={() => scroller.current?.scrollToEnd({ animated: true })}
-        >
-          {messages.map((m, i) => (
-            <Bubble key={i} role={m.role} text={m.text} />
-          ))}
-        </ScrollView>
+        <View style={styles.topBar}>
+          <Text style={styles.wordmark}>Bram</Text>
+        </View>
+
+        {messages.length === 0 ? (
+          <View style={styles.welcome}>
+            <Text style={styles.hello}>Hi, I'm {persona}.</Text>
+            <Text style={styles.helloSub}>
+              Your voice companion. Tap the orb and tell me anything — plans, people, or what's on your mind.
+            </Text>
+          </View>
+        ) : (
+          <ScrollView
+            ref={scroller}
+            style={styles.log}
+            contentContainerStyle={styles.logContent}
+            showsVerticalScrollIndicator={false}
+            onContentSizeChange={() => scroller.current?.scrollToEnd({ animated: true })}
+          >
+            {messages.map((m, i) => (
+              <Bubble key={i} role={m.role} text={m.text} />
+            ))}
+          </ScrollView>
+        )}
+
         <View style={styles.stage}>
           <Orb state={orb} onPress={onTalk} disabled={orb !== "idle"} />
-          <Text style={styles.status}>{STATUS[orb](persona)}</Text>
+          <View style={styles.statusPill}>
+            <View style={[styles.dot, { backgroundColor: DOT[orb] }]} />
+            <Text style={styles.status}>{STATUS[orb](persona)}</Text>
+          </View>
         </View>
       </View>
     </Screen>
@@ -88,8 +113,36 @@ export function ConversationScreen() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
+  topBar: { paddingHorizontal: space.lg, paddingTop: space.sm, paddingBottom: space.xs },
+  wordmark: {
+    color: colors.text,
+    fontSize: font.title,
+    fontWeight: font.weight.bold,
+    letterSpacing: 0.5,
+  },
+  welcome: { flex: 1, justifyContent: "center", paddingHorizontal: space.xl },
+  hello: {
+    color: colors.text,
+    fontSize: font.hero,
+    fontWeight: font.weight.bold,
+    letterSpacing: -1,
+    marginBottom: space.md,
+  },
+  helloSub: { color: colors.textDim, fontSize: font.title, lineHeight: 26, maxWidth: 320 },
   log: { flex: 1 },
   logContent: { padding: space.lg, justifyContent: "flex-end", flexGrow: 1 },
   stage: { alignItems: "center", paddingBottom: space.xl },
-  status: { color: colors.muted, fontSize: font.body, marginTop: space.sm },
+  statusPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.hairline,
+    borderRadius: radius.pill,
+    paddingHorizontal: space.md,
+    paddingVertical: space.sm,
+    marginTop: space.md,
+  },
+  dot: { width: 7, height: 7, borderRadius: 4, marginRight: space.sm },
+  status: { color: colors.textDim, fontSize: font.body, fontWeight: font.weight.medium },
 });
