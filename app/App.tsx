@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { ServicesProvider, type Services } from "./src/app/services";
 import { buildServices } from "./src/app/build-services";
@@ -34,43 +35,42 @@ export default function App() {
     }
   }, [services]);
 
-  if (!services) {
-    return (
-      <Screen ambient>
-        <StatusBar style="light" />
-        <View style={styles.loading}>
-          <Orb state="thinking" onPress={() => {}} disabled />
-          <Text style={styles.brand}>Bram</Text>
-          <Text style={styles.loadingText}>Waking up…</Text>
-        </View>
-      </Screen>
-    );
-  }
-
   return (
-    <ServicesProvider services={services}>
+    <SafeAreaProvider>
       <StatusBar style="light" />
-      <View style={styles.root}>
-        <View style={styles.body}>
-          {tab === "talk" && <ConversationScreen />}
-          {tab === "agenda" && <AgendaScreen />}
-          {tab === "graph" &&
-            (graphSel ? (
-              <NodeDetailScreen entityId={graphSel} onBack={() => setGraphSel(null)} onNavigate={setGraphSel} />
-            ) : (
-              <GraphScreen onSelect={setGraphSel} />
-            ))}
-          {tab === "settings" && <SettingsScreen />}
-        </View>
-        <TabBar
-          active={tab}
-          onChange={(t) => {
-            if (t !== "graph") setGraphSel(null);
-            setTab(t);
-          }}
-        />
-      </View>
-    </ServicesProvider>
+      {!services ? (
+        <Screen ambient>
+          <View style={styles.loading}>
+            <Orb state="thinking" onPress={() => {}} disabled />
+            <Text style={styles.brand}>Bram</Text>
+            <Text style={styles.loadingText}>Waking up…</Text>
+          </View>
+        </Screen>
+      ) : (
+        <ServicesProvider services={services}>
+          <View style={styles.root}>
+            <View style={styles.body}>
+              {tab === "talk" && <ConversationScreen />}
+              {tab === "agenda" && <AgendaScreen />}
+              {tab === "graph" &&
+                (graphSel ? (
+                  <NodeDetailScreen entityId={graphSel} onBack={() => setGraphSel(null)} onNavigate={setGraphSel} />
+                ) : (
+                  <GraphScreen onSelect={setGraphSel} />
+                ))}
+              {tab === "settings" && <SettingsScreen />}
+            </View>
+            <TabBar
+              active={tab}
+              onChange={(t) => {
+                if (t !== "graph") setGraphSel(null);
+                setTab(t);
+              }}
+            />
+          </View>
+        </ServicesProvider>
+      )}
+    </SafeAreaProvider>
   );
 }
 

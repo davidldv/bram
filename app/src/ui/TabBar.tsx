@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, View, Text, StyleSheet, type LayoutChangeEvent } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, font, radius, space } from "./theme";
 
@@ -14,6 +15,7 @@ const ITEMS: { key: Tab; icon: IconName; iconActive: IconName; label: string }[]
 ];
 
 export function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
+  const insets = useSafeAreaInsets();
   const [barWidth, setBarWidth] = useState(0);
   const idx = Math.max(0, ITEMS.findIndex((i) => i.key === active));
   const itemW = barWidth / ITEMS.length;
@@ -31,7 +33,7 @@ export function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) =
   const onLayout = (e: LayoutChangeEvent) => setBarWidth(e.nativeEvent.layout.width);
 
   return (
-    <View style={styles.bar} onLayout={onLayout}>
+    <View style={[styles.bar, { paddingBottom: space.md + insets.bottom }]} onLayout={onLayout}>
       {barWidth > 0 && (
         <Animated.View
           pointerEvents="none"
