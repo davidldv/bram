@@ -46,6 +46,15 @@ describe("snapshot", () => {
     expect(dst.data.memory).toEqual([{ id: "m1", text: "hi", created_at: 3 }]);
   });
 
+  it("restore rejects a snapshot missing a table without touching the db", async () => {
+    const db = memDb({ plan: [{ id: "keep", type: "task", title: "keep", scheduled_at: null, created_at: 1, done: 0 }] });
+    const { event: _drop, ...partial } = emptyTables();
+    await expect(
+      restore(db, { schemaVersion: SCHEMA_VERSION, tables: partial as Record<TableName, Row[]> })
+    ).rejects.toThrow(/missing rows for table "event"/);
+    expect(db.data.plan).toEqual([{ id: "keep", type: "task", title: "keep", scheduled_at: null, created_at: 1, done: 0 }]);
+  });
+
   it("buildInsert produces parameterized SQL in column order", () => {
     const row: Row = { id: "e1", type: "person", name: "Ana", attributes: null, last_mentioned_at: 2, created_at: 1 };
     expect(buildInsert("entity", row)).toEqual({
