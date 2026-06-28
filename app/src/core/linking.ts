@@ -3,6 +3,9 @@ import type { Entity, LifeEvent } from "./types";
 // Whole-word, case-insensitive presence of `name` in `text`.
 function mentions(text: string, name: string): boolean {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
+  // `name` is fully regex-escaped above, so no attacker-controlled quantifiers/alternation
+  // survive into the pattern — no ReDoS path. Pattern is a literal wrapped in \b…\b.
   return new RegExp(`\\b${escaped}\\b`, "i").test(text);
 }
 

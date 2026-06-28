@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 11
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -32,11 +32,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 11
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: pnpm install --frozen-lockfile
+      # Override the Windows-only virtualStoreDir ('C:\b') from app/pnpm-workspace.yaml
+      # so the store lands in the default location on the Linux runner.
+      - run: pnpm install --frozen-lockfile --virtual-store-dir node_modules/.pnpm
       - run: pnpm typecheck
       - run: pnpm test
 
