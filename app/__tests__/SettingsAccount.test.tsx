@@ -10,6 +10,13 @@ import {
 } from "../src/core/memory-repository";
 import { createInMemoryLifeStore } from "../src/core/life-store-memory";
 import type { Account } from "../src/auth/account";
+import type { Backup } from "../src/sync/backup";
+
+const stubBackup: Backup = {
+  backupNow: async () => ({ ok: true, version: 1 }),
+  restoreNow: async () => ({ ok: true }),
+  getStatus: async () => ({ lastBackupAt: null }),
+};
 
 function services(): Services {
   return {
@@ -44,7 +51,7 @@ function fakeAccount(over: Partial<Account> = {}): Account {
 const renderWith = (account: Account) =>
   render(
     <ServicesProvider services={services()}>
-      <SettingsScreen account={account} />
+      <SettingsScreen account={account} backup={stubBackup} />
     </ServicesProvider>
   );
 
