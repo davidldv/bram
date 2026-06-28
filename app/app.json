@@ -53,8 +53,8 @@
     "extra": {
       "backendBaseUrl": "http://10.0.2.2:3000",
       "clientSecret": "",
-      "supabaseUrl": "",
-      "supabaseAnonKey": ""
+      "supabaseUrl": "https://pbcvmimvrsstexxboefo.supabase.co",
+      "supabaseAnonKey": "sb_publishable_X-3uHICgq_Kcgtn0WIuqYg_HRv_DCt2"
     }
   }
 }
