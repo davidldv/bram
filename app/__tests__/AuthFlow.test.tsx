@@ -3,6 +3,11 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react-nativ
 import { AuthFlow } from "../src/auth/AuthFlow";
 import type { Account } from "../src/auth/account";
 
+jest.mock("expo-clipboard", () => ({ setStringAsync: jest.fn(async () => true) }));
+import * as Clipboard from "expo-clipboard";
+
+beforeEach(() => (Clipboard.setStringAsync as jest.Mock).mockClear());
+
 function fakeAccount(over: Partial<Account> = {}): Account {
   return {
     signUp: async () => ({ recoveryCode: "AAAA BBBB" }),
@@ -42,6 +47,31 @@ describe("AuthFlow", () => {
 
     await waitFor(() => expect(onSignedIn).toHaveBeenCalled());
     expect(signIn).toHaveBeenCalledWith("a@b.com", "hunter2");
+  });
+
+  it("copies the recovery code to the clipboard", async () => {
+    render(<AuthFlow visible onClose={() => {}} onSignedIn={() => {}} account={fakeAccount()} />);
+    fireEvent.press(screen.getByLabelText("Go to sign up"));
+    fireEvent.changeText(screen.getByLabelText("email"), "a@b.com");
+    fireEvent.changeText(screen.getByLabelText("password"), "hunter2");
+    fireEvent.press(screen.getByLabelText("Create account"));
+
+    await waitFor(() => expect(screen.getByText(/AAAA BBBB/)).toBeTruthy());
+    fireEvent.press(screen.getByLabelText("Copy recovery code"));
+    await waitFor(() => expect(Clipboard.setStringAsync).toHaveBeenCalledWith("AAAA BBBB"));
+  });
+
+  it("shows a working indicator while a sign-in is in flight", async () => {
+    let release: () => void = () => {};
+    const signIn = jest.fn(() => new Promise<void>((r) => (release = r)));
+    render(<AuthFlow visible onClose={() => {}} onSignedIn={() => {}} account={fakeAccount({ signIn })} />);
+
+    fireEvent.changeText(screen.getByLabelText("email"), "a@b.com");
+    fireEvent.changeText(screen.getByLabelText("password"), "hunter2");
+    fireEvent.press(screen.getByLabelText("Log in"));
+
+    await waitFor(() => expect(screen.getByLabelText("working")).toBeTruthy());
+    release();
   });
 
   it("surfaces an error when sign in fails", async () => {

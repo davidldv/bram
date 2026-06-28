@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { Modal, ScrollView, Text, TextInput, View, StyleSheet } from "react-native";
+import { Modal, ScrollView, Text, TextInput, View, ActivityIndicator, StyleSheet } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import { Screen } from "../ui/Screen";
 import { Card } from "../ui/Card";
 import { Section } from "../ui/Section";
@@ -26,8 +27,14 @@ export function AuthFlow({
   const [password, setPassword] = useState("");
   const [recoveryCode, setRecoveryCode] = useState("");
   const [saved, setSaved] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+
+  const doCopy = async () => {
+    await Clipboard.setStringAsync(recoveryCode);
+    setCopied(true);
+  };
 
   const run = async (fn: () => Promise<void>) => {
     setBusy(true);
@@ -85,9 +92,10 @@ export function AuthFlow({
                   style={styles.input}
                 />
                 {error ? <Text style={styles.error}>{error}</Text> : null}
+                {busy ? <ActivityIndicator accessibilityLabel="working" color={colors.accent} style={styles.spinner} /> : null}
                 {step === "login" ? (
                   <>
-                    <GradientButton label="Log in" onPress={doSignIn} disabled={busy} accessibilityLabel="Log in" />
+                    <GradientButton label={busy ? "Signing in…" : "Log in"} onPress={doSignIn} disabled={busy} accessibilityLabel="Log in" />
                     <PressableScale onPress={() => setStep("signup")} accessibilityLabel="Go to sign up" style={styles.linkBtn}>
                       <Text style={styles.link}>New here? Create an account</Text>
                     </PressableScale>
@@ -98,7 +106,7 @@ export function AuthFlow({
                       Your data is encrypted on this device first — we can never read it. That also means a lost
                       password can only be recovered with the recovery code on the next screen.
                     </Text>
-                    <GradientButton label="Create account" onPress={doSignUp} disabled={busy} accessibilityLabel="Create account" />
+                    <GradientButton label={busy ? "Creating account…" : "Create account"} onPress={doSignUp} disabled={busy} accessibilityLabel="Create account" />
                     <PressableScale onPress={() => setStep("login")} accessibilityLabel="Go to log in" style={styles.linkBtn}>
                       <Text style={styles.link}>Already have an account? Log in</Text>
                     </PressableScale>
@@ -116,6 +124,13 @@ export function AuthFlow({
                   password. We don't store it and can't show it again.
                 </Text>
                 <Text style={styles.code} accessibilityLabel="recovery code">{recoveryCode}</Text>
+                <GradientButton
+                  variant="ghost"
+                  label={copied ? "Copied ✓" : "Copy"}
+                  onPress={doCopy}
+                  accessibilityLabel="Copy recovery code"
+                />
+                <View style={{ height: space.md }} />
                 <PressableScale
                   onPress={() => setSaved((v) => !v)}
                   accessibilityLabel="I saved my recovery code"
@@ -169,6 +184,7 @@ const styles = StyleSheet.create({
   },
   note: { color: colors.muted, fontSize: font.small, lineHeight: 18, marginBottom: space.md },
   error: { color: colors.danger, fontSize: font.small, marginBottom: space.md },
+  spinner: { marginBottom: space.md },
   code: {
     color: colors.text,
     fontSize: font.body,

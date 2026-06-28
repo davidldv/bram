@@ -29,6 +29,9 @@ importers:
       expo-calendar:
         specifier: ~56.0.8
         version: 56.0.8(expo@56.0.9)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@types/react@19.2.16)(react@19.2.3))
+      expo-clipboard:
+        specifier: ~56.0.4
+        version: 56.0.4(expo@56.0.9)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@types/react@19.2.16)(react@19.2.3))(react@19.2.3)
       expo-constants:
         specifier: ^56.0.17
         version: 56.0.17(expo@56.0.9)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@types/react@19.2.16)(react@19.2.3))
@@ -1655,6 +1658,13 @@ packages:
     resolution: {integrity: sha512-gxH+J+teP3CBXPybQHuwzTYrFEmSz4irh2n2KSVzzbIRqjVwgVH42op/BViOqxIkMlOlx3hmXNVIkB8RiMtIvg==}
     peerDependencies:
       expo: '*'
+      react-native: '*'
+
+  expo-clipboard@56.0.4:
+    resolution: {integrity: sha512-qb4DYlkiowHYHaUYVT2FN9nk/nI1xShXOUYsI7J9dVpQCOHcGFjCBPX1VAvEW4Ye4/Aagd6IuhOVAq/+scBOiA==}
+    peerDependencies:
+      expo: '*'
+      react: '*'
       react-native: '*'
 
   expo-constants@56.0.17:
@@ -5337,6 +5347,12 @@ snapshots:
   expo-calendar@56.0.8(expo@56.0.9)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@types/react@19.2.16)(react@19.2.3)):
     dependencies:
       expo: 56.0.9(@babel/core@7.29.7)(@expo/dom-webview@56.0.5)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@types/react@19.2.16)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+      react-native: 0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@types/react@19.2.16)(react@19.2.3)
+
+  expo-clipboard@56.0.4(expo@56.0.9)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@types/react@19.2.16)(react@19.2.3))(react@19.2.3):
+    dependencies:
+      expo: 56.0.9(@babel/core@7.29.7)(@expo/dom-webview@56.0.5)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@types/react@19.2.16)(react@19.2.3))(react@19.2.3)(typescript@6.0.3)
+      react: 19.2.3
       react-native: 0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@types/react@19.2.16)(react@19.2.3)
 
   expo-constants@56.0.17(expo@56.0.9)(react-native@0.85.3(@babel/core@7.29.7)(@react-native/jest-preset@0.85.3(@babel/core@7.29.7)(react@19.2.3))(@types/react@19.2.16)(react@19.2.3)):
