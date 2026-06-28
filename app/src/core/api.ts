@@ -7,6 +7,7 @@ export interface BramApi {
 
 export function createBramApi(opts: {
   baseUrl: string;
+  clientSecret?: string;
   fetchFn?: typeof fetch;
 }): BramApi {
   const fetchFn = opts.fetchFn ?? fetch;
@@ -14,7 +15,10 @@ export function createBramApi(opts: {
   const postJson = async (path: string, payload: unknown): Promise<Response> =>
     fetchFn(`${base}${path}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(opts.clientSecret ? { "x-bram-key": opts.clientSecret } : {}),
+      },
       body: JSON.stringify(payload),
     });
 

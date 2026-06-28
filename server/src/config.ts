@@ -4,6 +4,7 @@ export interface Config {
   model: string;
   port: number;
   rateLimitMax: number;
+  clientSecret?: string;
 }
 
 function numberFromEnv(value: string | undefined, name: string, fallback: number): number {
@@ -29,5 +30,6 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     model: env.OPENROUTER_MODEL ?? "openai/gpt-oss-120b:free",
     port: numberFromEnv(env.PORT, "PORT", 3000),
     rateLimitMax: numberFromEnv(env.RATE_LIMIT_MAX, "RATE_LIMIT_MAX", 30),
+    clientSecret: env.CLIENT_SECRET?.trim() || undefined,
   };
 }
