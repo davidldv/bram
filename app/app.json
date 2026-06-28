@@ -47,10 +47,14 @@
             "com.google.android.googlequicksearchbox"
           ]
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "extra": {
-      "backendBaseUrl": "http://10.0.2.2:3000"
+      "backendBaseUrl": "http://10.0.2.2:3000",
+      "clientSecret": "",
+      "supabaseUrl": "",
+      "supabaseAnonKey": ""
     }
   }
 }
