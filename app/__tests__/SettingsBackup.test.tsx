@@ -63,7 +63,7 @@ describe("Settings backup controls", () => {
     renderWith(fakeBackup({ backupNow }));
     fireEvent.press(await screen.findByLabelText("Back up now"));
     await waitFor(() => expect(backupNow).toHaveBeenCalled());
-    await waitFor(() => expect(screen.getByText(/backed up/i)).toBeTruthy());
+    await waitFor(() => expect(screen.getByText("Backed up ✓")).toBeTruthy());
   });
 
   it("offers Overwrite on conflict and forces past it", async () => {
@@ -81,6 +81,16 @@ describe("Settings backup controls", () => {
     const restoreNow = jest.fn(async () => ({ ok: true as const }));
     renderWith(fakeBackup({ restoreNow }));
     fireEvent.press(await screen.findByLabelText("Restore"));
+    fireEvent.press(await screen.findByLabelText("Confirm restore"));
+    await waitFor(() => expect(restoreNow).toHaveBeenCalled());
+  });
+
+  it("Restore first from conflict leads to confirm then restoreNow", async () => {
+    const restoreNow = jest.fn(async () => ({ ok: true as const }));
+    const backupNow = jest.fn().mockResolvedValueOnce({ conflict: true });
+    renderWith(fakeBackup({ backupNow, restoreNow }));
+    fireEvent.press(await screen.findByLabelText("Back up now"));
+    fireEvent.press(await screen.findByLabelText("Restore first"));
     fireEvent.press(await screen.findByLabelText("Confirm restore"));
     await waitFor(() => expect(restoreNow).toHaveBeenCalled());
   });

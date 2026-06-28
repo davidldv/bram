@@ -201,7 +201,7 @@ export function SettingsScreen({
                   </PressableScale>
                 </View>
                 <Text style={styles.empty}>
-                  {lastBackupAt ? `Last backed up: ${new Date(lastBackupAt).toLocaleString()}` : "No cloud backup yet"}
+                  {lastBackupAt ? `Last backed up: ${new Date(lastBackupAt).toLocaleString()}` : "Not backed up yet"}
                 </Text>
                 {backupBusy ? <ActivityIndicator accessibilityLabel="working" color={colors.accent} style={{ marginVertical: space.md }} /> : null}
                 {backupMsg ? <Text style={styles.empty}>{backupMsg}</Text> : null}
@@ -209,7 +209,7 @@ export function SettingsScreen({
                   <>
                     <Text style={styles.empty}>A newer backup exists on another device.</Text>
                     <View style={{ height: space.sm }} />
-                    <GradientButton label="Restore first" onPress={() => setConfirmRestore(true)} accessibilityLabel="Restore first" />
+                    <GradientButton label="Restore first" onPress={() => { setConflict(false); setConfirmRestore(true); }} accessibilityLabel="Restore first" />
                     <View style={{ height: space.sm }} />
                     <GradientButton variant="danger" label="Overwrite" onPress={() => runBackup({ force: true })} accessibilityLabel="Overwrite" />
                   </>
