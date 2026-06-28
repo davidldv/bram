@@ -3,7 +3,9 @@ import type { Entity, LifeEvent } from "./types";
 // Whole-word, case-insensitive presence of `name` in `text`.
 function mentions(text: string, name: string): boolean {
   const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  return new RegExp(`\\b${escaped}\\b`, "i").test(text);
+  // `name` is fully regex-escaped above, so no attacker-controlled quantifiers/alternation
+  // survive into the pattern — no ReDoS path (a literal wrapped in \b…\b).
+  return new RegExp(`\\b${escaped}\\b`, "i").test(text); // nosemgrep: javascript.lang.security.audit.detect-non-literal-regexp.detect-non-literal-regexp
 }
 
 // Derives [eventId, entityId] links: an event links to any entity named in its

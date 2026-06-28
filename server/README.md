@@ -5,7 +5,10 @@ Thin, stateless proxy for the Bram app. Holds the Claude + news API keys; stores
 ## Endpoints
 - `POST /chat` — `{ system, messages }` → `{ reply }`
 - `POST /news` — `{ topics }` → `{ headlines }`
-- `GET /health` — `{ ok: true }`
+- `GET /health` — `{ ok: true }` (open, for liveness checks)
+
+`/chat` and `/news` require the `x-bram-key` header to match `CLIENT_SECRET` when it
+is set. Leave `CLIENT_SECRET` unset only for local dev — the server warns on startup.
 
 ## Setup
 1. `pnpm install`

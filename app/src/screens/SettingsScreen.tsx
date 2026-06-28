@@ -11,13 +11,41 @@ import { Card } from "../ui/Card";
 import { GradientButton } from "../ui/GradientButton";
 import { PressableScale } from "../ui/motion";
 import { colors, font, radius, space } from "../ui/theme";
+import { AuthFlow } from "../auth/AuthFlow";
+import { account as defaultAccount, type Account } from "../auth/account";
 
-export function SettingsScreen() {
+// account() throws when Supabase isn't configured; Settings must still render.
+function safeDefaultAccount(): Account {
+  try {
+    return defaultAccount();
+  } catch {
+    return {
+      signUp: async () => {
+        throw new Error("Cloud sync is not configured");
+      },
+      signIn: async () => {
+        throw new Error("Cloud sync is not configured");
+      },
+      signOut: async () => {},
+      getAccount: async () => null,
+      getUserKey: async () => null,
+    };
+  }
+}
+
+export function SettingsScreen({ account = safeDefaultAccount() }: { account?: Account } = {}) {
   const s = useServices();
   const [name, setName] = useState("");
   const [saved, setSaved] = useState("");
   const [topics, setTopics] = useState<NewsTopic[]>([]);
   const [memories, setMemories] = useState<Entity[]>([]);
+  const [acct, setAcct] = useState<{ email: string } | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
+
+  const refreshAccount = () => account.getAccount().then(setAcct).catch(() => setAcct(null));
+  useEffect(() => {
+    refreshAccount();
+  }, []);
 
   useEffect(() => {
     getPersonaName(s.prefs).then((n) => {
@@ -103,7 +131,48 @@ export function SettingsScreen() {
             )}
           </Card>
         </Section>
+        <Section title="Cloud backup & sync">
+          <Card>
+            {acct ? (
+              <View style={styles.topicRow}>
+                <Text style={styles.factText}>{acct.email}</Text>
+                <PressableScale
+                  onPress={async () => {
+                    await account.signOut();
+                    refreshAccount();
+                  }}
+                  accessibilityLabel="Sign out"
+                  hitSlop={12}
+                  style={styles.forget}
+                >
+                  <Ionicons name="log-out-outline" size={18} color={colors.muted} />
+                </PressableScale>
+              </View>
+            ) : (
+              <>
+                <Text style={styles.empty}>
+                  Back up your data, end-to-end encrypted, and sync across devices. Premium.
+                </Text>
+                <View style={{ height: space.md }} />
+                <GradientButton
+                  label="Back up & sync"
+                  onPress={() => setAuthOpen(true)}
+                  accessibilityLabel="Back up and sync"
+                />
+              </>
+            )}
+          </Card>
+        </Section>
       </ScrollView>
+      <AuthFlow
+        visible={authOpen}
+        onClose={() => setAuthOpen(false)}
+        onSignedIn={() => {
+          setAuthOpen(false);
+          refreshAccount();
+        }}
+        account={account}
+      />
     </Screen>
   );
 }

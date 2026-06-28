@@ -6,12 +6,16 @@ import { createNewsClient } from "./services/news";
 
 function main() {
   const cfg = loadConfig();
+  if (!cfg.clientSecret) {
+    console.warn("WARNING: CLIENT_SECRET not set — /chat and /news accept anyone with the URL");
+  }
 
   const app = createApp({
     llm: createLlmClient({ apiKeys: cfg.openrouterKeys, model: cfg.model }),
     news: createNewsClient({ apiKey: cfg.newsApiKey }),
     maxTokens: 1024,
     rateLimit: rateLimit({ windowMs: 60_000, max: cfg.rateLimitMax, standardHeaders: true }),
+    clientSecret: cfg.clientSecret,
   });
 
   app.listen(cfg.port, () => {
