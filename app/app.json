@@ -1,13 +1,14 @@
 {
   "expo": {
-    "name": "app",
-    "slug": "app",
+    "name": "Bram",
+    "slug": "bram",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
-      "supportsTablet": true,
+      "bundleIdentifier": "dev.dlondon.bram",
+      "supportsTablet": false,
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "Allow Bram to convert your speech to text.",
         "NSMicrophoneUsageDescription": "Allow Bram to use the microphone to hear you."
@@ -24,7 +25,7 @@
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.davidl.on.app"
+      "package": "dev.dlondon.bram"
     },
     "web": {
       "favicon": "./assets/favicon.png"
