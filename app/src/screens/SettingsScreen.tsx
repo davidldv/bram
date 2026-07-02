@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, TextInput, View, Switch, StyleSheet } from "react-native";
+import { Alert, ScrollView, Text, TextInput, View, Switch, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useServices } from "../app/services";
 import { getPersonaName, setPersonaName } from "../core/persona";
@@ -73,6 +73,29 @@ export function SettingsScreen({ account = safeDefaultAccount() }: { account?: A
 
   const dirty = name.trim() !== saved && name.trim() !== "";
 
+  const confirmDeleteAccount = () => {
+    Alert.alert(
+      "Delete account?",
+      "This permanently deletes your cloud account and encrypted backup. Data on this phone stays.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await s.api.deleteAccount();
+              await account.signOut();
+              refreshAccount();
+            } catch {
+              Alert.alert("Couldn't delete your account", "Please try again later.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -134,20 +157,31 @@ export function SettingsScreen({ account = safeDefaultAccount() }: { account?: A
         <Section title="Cloud backup & sync">
           <Card>
             {acct ? (
-              <View style={styles.topicRow}>
-                <Text style={styles.factText}>{acct.email}</Text>
-                <PressableScale
-                  onPress={async () => {
-                    await account.signOut();
-                    refreshAccount();
-                  }}
-                  accessibilityLabel="Sign out"
-                  hitSlop={12}
-                  style={styles.forget}
-                >
-                  <Ionicons name="log-out-outline" size={18} color={colors.muted} />
-                </PressableScale>
-              </View>
+              <>
+                <View style={styles.topicRow}>
+                  <Text style={styles.factText}>{acct.email}</Text>
+                  <PressableScale
+                    onPress={async () => {
+                      await account.signOut();
+                      refreshAccount();
+                    }}
+                    accessibilityLabel="Sign out"
+                    hitSlop={12}
+                    style={styles.forget}
+                  >
+                    <Ionicons name="log-out-outline" size={18} color={colors.muted} />
+                  </PressableScale>
+                </View>
+                <View style={[styles.topicRow, styles.divider]}>
+                  <PressableScale
+                    onPress={confirmDeleteAccount}
+                    accessibilityLabel="Delete account"
+                    hitSlop={12}
+                  >
+                    <Text style={styles.dangerText}>Delete account</Text>
+                  </PressableScale>
+                </View>
+              </>
             ) : (
               <>
                 <Text style={styles.empty}>
@@ -207,6 +241,7 @@ const styles = StyleSheet.create({
     paddingVertical: space.md,
   },
   factText: { color: colors.text, fontSize: font.body, flex: 1, marginRight: space.md },
+  dangerText: { color: colors.danger, fontSize: font.body },
   forget: {
     width: 30,
     height: 30,

@@ -73,4 +73,26 @@ describe("createBramApi", () => {
     const api = createBramApi({ baseUrl: "http://host", fetchFn: fetchFn as unknown as typeof fetch });
     await expect(api.news(["tech"])).rejects.toThrow(/news failed: 503/);
   });
+
+  it("DELETEs /account with the Bearer token", async () => {
+    const fetchFn = jest.fn(async (..._args: Parameters<typeof fetch>) => fakeResponse({}, true, 204));
+    const api = createBramApi({
+      baseUrl: "http://host",
+      getToken: async () => "jwt-abc",
+      fetchFn: fetchFn as unknown as typeof fetch,
+    });
+
+    await api.deleteAccount();
+
+    const [url, init] = fetchFn.mock.calls[0];
+    expect(url).toBe("http://host/account");
+    expect((init as RequestInit).method).toBe("DELETE");
+    expect((init as RequestInit).headers).toMatchObject({ Authorization: "Bearer jwt-abc" });
+  });
+
+  it("throws when account deletion returns non-ok", async () => {
+    const fetchFn = jest.fn(async (..._args: Parameters<typeof fetch>) => fakeResponse({}, false, 502));
+    const api = createBramApi({ baseUrl: "http://host", fetchFn: fetchFn as unknown as typeof fetch });
+    await expect(api.deleteAccount()).rejects.toThrow(/delete account failed: 502/);
+  });
 });

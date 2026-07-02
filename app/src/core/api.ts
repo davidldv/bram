@@ -3,6 +3,7 @@ import type { ChatMessage, Headline } from "./types";
 export interface BramApi {
   chat(system: string, messages: ChatMessage[]): Promise<string>;
   news(topics: string[]): Promise<Headline[]>;
+  deleteAccount(): Promise<void>;
 }
 
 export function createBramApi(opts: {
@@ -12,17 +13,16 @@ export function createBramApi(opts: {
 }): BramApi {
   const fetchFn = opts.fetchFn ?? fetch;
   const base = opts.baseUrl.replace(/\/$/, "");
-  const postJson = async (path: string, payload: unknown): Promise<Response> => {
+  const authHeaders = async (): Promise<Record<string, string>> => {
     const token = opts.getToken ? await opts.getToken() : null;
-    return fetchFn(`${base}${path}`, {
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  };
+  const postJson = async (path: string, payload: unknown): Promise<Response> =>
+    fetchFn(`${base}${path}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
+      headers: { "Content-Type": "application/json", ...(await authHeaders()) },
       body: JSON.stringify(payload),
     });
-  };
 
   return {
     async chat(system, messages) {
@@ -36,6 +36,13 @@ export function createBramApi(opts: {
       if (!res.ok) throw new Error(`news failed: ${res.status}`);
       const data = (await res.json()) as { headlines: Headline[] };
       return data.headlines;
+    },
+    async deleteAccount() {
+      const res = await fetchFn(`${base}/account`, {
+        method: "DELETE",
+        headers: await authHeaders(),
+      });
+      if (!res.ok) throw new Error(`delete account failed: ${res.status}`);
     },
   };
 }

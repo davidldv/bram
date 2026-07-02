@@ -7,6 +7,7 @@ function fakeApi(reply: string): BramApi {
   return {
     chat: jest.fn(async () => reply),
     news: jest.fn(async () => []),
+    deleteAccount: jest.fn(async () => {}),
   };
 }
 
