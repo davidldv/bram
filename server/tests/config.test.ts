@@ -39,6 +39,19 @@ describe("loadConfig", () => {
     expect(cfg.rateLimitMax).toBe(5);
   });
 
+  it("reads SUPABASE_URL and strips a trailing slash", () => {
+    const cfg = loadConfig({
+      OPENROUTER_API_KEY: "a", NEWS_API_KEY: "n",
+      SUPABASE_URL: "https://proj.supabase.co/",
+    });
+    expect(cfg.supabaseUrl).toBe("https://proj.supabase.co");
+  });
+
+  it("leaves supabaseUrl unset when SUPABASE_URL is blank", () => {
+    const cfg = loadConfig({ OPENROUTER_API_KEY: "a", NEWS_API_KEY: "n", SUPABASE_URL: "  " });
+    expect(cfg.supabaseUrl).toBeUndefined();
+  });
+
   it("throws when PORT is not a number", () => {
     expect(() =>
       loadConfig({ OPENROUTER_API_KEY: "a", NEWS_API_KEY: "n", PORT: "abc" })

@@ -34,6 +34,34 @@ describe("createBramApi", () => {
     expect(JSON.parse((init as RequestInit).body as string)).toEqual({ topics: ["tech"] });
   });
 
+  it("sends the access token as a Bearer Authorization header", async () => {
+    const fetchFn = jest.fn(async (..._args: Parameters<typeof fetch>) => fakeResponse({ reply: "ok" }));
+    const api = createBramApi({
+      baseUrl: "http://host",
+      getToken: async () => "jwt-abc",
+      fetchFn: fetchFn as unknown as typeof fetch,
+    });
+
+    await api.chat("s", [{ role: "user", content: "hi" }]);
+
+    const [, init] = fetchFn.mock.calls[0];
+    expect((init as RequestInit).headers).toMatchObject({ Authorization: "Bearer jwt-abc" });
+  });
+
+  it("omits the Authorization header when no token is available", async () => {
+    const fetchFn = jest.fn(async (..._args: Parameters<typeof fetch>) => fakeResponse({ reply: "ok" }));
+    const api = createBramApi({
+      baseUrl: "http://host",
+      getToken: async () => null,
+      fetchFn: fetchFn as unknown as typeof fetch,
+    });
+
+    await api.chat("s", [{ role: "user", content: "hi" }]);
+
+    const [, init] = fetchFn.mock.calls[0];
+    expect((init as RequestInit).headers).not.toHaveProperty("Authorization");
+  });
+
   it("throws when chat returns non-ok", async () => {
     const fetchFn = jest.fn(async (..._args: Parameters<typeof fetch>) => fakeResponse({}, false, 502));
     const api = createBramApi({ baseUrl: "http://host", fetchFn: fetchFn as unknown as typeof fetch });

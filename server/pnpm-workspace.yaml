@@ -3,6 +3,9 @@
 allowBuilds:
   esbuild: true
 
+# 7-day cooldown (in minutes) before newly published versions may resolve.
+minimumReleaseAge: 10080
+
 # Force patched versions of dev-only transitive deps flagged by `pnpm audit`.
 overrides:
   "form-data@>=4.0.0 <4.0.6": ">=4.0.6"

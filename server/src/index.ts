@@ -1,21 +1,27 @@
 import rateLimit from "express-rate-limit";
 import { loadConfig } from "./config";
-import { createApp } from "./server";
+import { createApp, userRateLimitKey } from "./server";
+import { createSupabaseVerifier } from "./auth";
 import { createLlmClient } from "./services/llm";
 import { createNewsClient } from "./services/news";
 
 function main() {
   const cfg = loadConfig();
-  if (!cfg.clientSecret) {
-    console.warn("WARNING: CLIENT_SECRET not set — /chat and /news accept anyone with the URL");
+  if (!cfg.supabaseUrl) {
+    console.warn("WARNING: SUPABASE_URL not set — /chat and /news accept anyone with the URL");
   }
 
   const app = createApp({
     llm: createLlmClient({ apiKeys: cfg.openrouterKeys, model: cfg.model }),
     news: createNewsClient({ apiKey: cfg.newsApiKey }),
     maxTokens: 1024,
-    rateLimit: rateLimit({ windowMs: 60_000, max: cfg.rateLimitMax, standardHeaders: true }),
-    clientSecret: cfg.clientSecret,
+    rateLimit: rateLimit({
+      windowMs: 60_000,
+      max: cfg.rateLimitMax,
+      standardHeaders: true,
+      keyGenerator: userRateLimitKey,
+    }),
+    verifyToken: cfg.supabaseUrl ? createSupabaseVerifier(cfg.supabaseUrl) : undefined,
   });
 
   app.listen(cfg.port, () => {
