@@ -1,10 +1,13 @@
 # Bram Proxy
 
-Thin, stateless proxy for the Bram app. Holds the Claude + news API keys; stores nothing.
+Thin, stateless proxy for the Bram app. Holds the LLM (OpenRouter) + news API keys;
+stores nothing.
 
 ## Endpoints
 - `POST /chat` — `{ system, messages }` → `{ reply }`
 - `POST /news` — `{ topics }` → `{ headlines }`
+- `DELETE /account` — deletes the caller's Supabase user (backup row cascades);
+  mounted only when `SUPABASE_SERVICE_ROLE_KEY` is set
 - `GET /health` — `{ ok: true }` (open, for liveness checks)
 
 `/chat` and `/news` require a Supabase user JWT (`Authorization: Bearer <token>`),

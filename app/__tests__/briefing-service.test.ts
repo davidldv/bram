@@ -32,6 +32,7 @@ describe("morningBriefing", () => {
     const api: BramApi = {
       news: jest.fn(async () => [{ title: "N", source: "S", url: "http://a" }]),
       chat: jest.fn(async () => "Good morning."),
+      deleteAccount: jest.fn(async () => {}),
     };
     const plans = createMemoryPlanRepository([
       plan({ id: "today", title: "standup", scheduledAt: todayAt(9) }),
@@ -64,6 +65,7 @@ describe("morningBriefing", () => {
     const api: BramApi = {
       news: jest.fn(async () => [{ title: "N", source: "S", url: "http://a" }]),
       chat: jest.fn(async () => "Morning."),
+      deleteAccount: jest.fn(async () => {}),
     };
     const plans = createMemoryPlanRepository();
     const topics = createMemoryTopicRepository([{ id: "tech", label: "tech", enabled: false }]);

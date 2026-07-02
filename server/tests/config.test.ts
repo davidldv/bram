@@ -52,6 +52,12 @@ describe("loadConfig", () => {
     expect(cfg.supabaseUrl).toBeUndefined();
   });
 
+  it("reads SUPABASE_SERVICE_ROLE_KEY, treating blank as unset", () => {
+    const base = { OPENROUTER_API_KEY: "a", NEWS_API_KEY: "n" };
+    expect(loadConfig({ ...base, SUPABASE_SERVICE_ROLE_KEY: "srk" }).supabaseServiceRoleKey).toBe("srk");
+    expect(loadConfig({ ...base, SUPABASE_SERVICE_ROLE_KEY: " " }).supabaseServiceRoleKey).toBeUndefined();
+  });
+
   it("throws when PORT is not a number", () => {
     expect(() =>
       loadConfig({ OPENROUTER_API_KEY: "a", NEWS_API_KEY: "n", PORT: "abc" })

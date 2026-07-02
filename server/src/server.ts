@@ -1,8 +1,10 @@
 import express, { type Request, type RequestHandler } from "express";
 import { newsRouter } from "./routes/news";
 import { chatRouter } from "./routes/chat";
+import { accountRouter } from "./routes/account";
 import type { NewsClient } from "./services/news";
 import type { LlmClient } from "./services/llm";
+import type { AccountAdmin } from "./services/supabase-admin";
 
 /** Verifies an access token and resolves to the user id; throws when invalid. */
 export type TokenVerifier = (token: string) => Promise<string>;
@@ -13,6 +15,7 @@ export interface AppDeps {
   maxTokens: number;
   rateLimit?: RequestHandler;
   verifyToken?: TokenVerifier;
+  admin?: AccountAdmin;
 }
 
 /** Rate-limit key: the authenticated user id, or the IP before auth is configured. */
@@ -43,5 +46,6 @@ export function createApp(deps: AppDeps) {
   if (deps.rateLimit) app.use(deps.rateLimit);
   app.use(newsRouter(deps.news));
   app.use(chatRouter(deps.llm, deps.maxTokens));
+  if (deps.admin) app.use(accountRouter(deps.admin));
   return app;
 }

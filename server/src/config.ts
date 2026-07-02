@@ -5,6 +5,7 @@ export interface Config {
   port: number;
   rateLimitMax: number;
   supabaseUrl?: string;
+  supabaseServiceRoleKey?: string;
 }
 
 function numberFromEnv(value: string | undefined, name: string, fallback: number): number {
@@ -31,5 +32,6 @@ export function loadConfig(env: Record<string, string | undefined> = process.env
     port: numberFromEnv(env.PORT, "PORT", 3000),
     rateLimitMax: numberFromEnv(env.RATE_LIMIT_MAX, "RATE_LIMIT_MAX", 30),
     supabaseUrl: env.SUPABASE_URL?.trim().replace(/\/$/, "") || undefined,
+    supabaseServiceRoleKey: env.SUPABASE_SERVICE_ROLE_KEY?.trim() || undefined,
   };
 }
