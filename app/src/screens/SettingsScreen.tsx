@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, TextInput, View, Switch, StyleSheet } from "react-native";
+import { ScrollView, Text, TextInput, View, Switch, StyleSheet, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useServices } from "../app/services";
 import { getPersonaName, setPersonaName } from "../core/persona";
@@ -13,6 +13,7 @@ import { PressableScale } from "../ui/motion";
 import { colors, font, radius, space } from "../ui/theme";
 import { AuthFlow } from "../auth/AuthFlow";
 import { account as defaultAccount, type Account } from "../auth/account";
+import { backup as defaultBackup, type Backup } from "../sync/backup";
 
 // account() throws when Supabase isn't configured; Settings must still render.
 function safeDefaultAccount(): Account {
@@ -33,7 +34,23 @@ function safeDefaultAccount(): Account {
   }
 }
 
-export function SettingsScreen({ account = safeDefaultAccount() }: { account?: Account } = {}) {
+// backup() throws when Supabase isn't configured; Settings must still render.
+function safeDefaultBackup(): Backup {
+  try {
+    return defaultBackup();
+  } catch {
+    return {
+      backupNow: async () => ({ error: "Cloud sync is not configured" }),
+      restoreNow: async () => ({ error: "Cloud sync is not configured" }),
+      getStatus: async () => ({ lastBackupAt: null }),
+    };
+  }
+}
+
+export function SettingsScreen({
+  account = safeDefaultAccount(),
+  backup = safeDefaultBackup(),
+}: { account?: Account; backup?: Backup } = {}) {
   const s = useServices();
   const [name, setName] = useState("");
   const [saved, setSaved] = useState("");
@@ -42,10 +59,47 @@ export function SettingsScreen({ account = safeDefaultAccount() }: { account?: A
   const [acct, setAcct] = useState<{ email: string } | null>(null);
   const [authOpen, setAuthOpen] = useState(false);
 
+  const [lastBackupAt, setLastBackupAt] = useState<number | null>(null);
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [backupMsg, setBackupMsg] = useState("");
+  const [conflict, setConflict] = useState(false);
+  const [confirmRestore, setConfirmRestore] = useState(false);
+
   const refreshAccount = () => account.getAccount().then(setAcct).catch(() => setAcct(null));
   useEffect(() => {
     refreshAccount();
   }, []);
+
+  useEffect(() => {
+    if (acct) backup.getStatus().then((s) => setLastBackupAt(s.lastBackupAt)).catch(() => {});
+  }, [acct]);
+
+  const runBackup = async (opts?: { force?: boolean }) => {
+    setBackupBusy(true);
+    setBackupMsg("");
+    setConflict(false);
+    const res = await backup.backupNow(opts);
+    setBackupBusy(false);
+    if ("ok" in res) {
+      setBackupMsg("Backed up ✓");
+      setLastBackupAt((await backup.getStatus()).lastBackupAt);
+    } else if ("conflict" in res) {
+      setConflict(true);
+    } else {
+      setBackupMsg(res.error);
+    }
+  };
+
+  const runRestore = async () => {
+    setConfirmRestore(false);
+    setBackupBusy(true);
+    setBackupMsg("");
+    const res = await backup.restoreNow();
+    setBackupBusy(false);
+    if ("ok" in res) setBackupMsg("Restored ✓ — restart Bram to finish loading your data");
+    else if ("empty" in res) setBackupMsg("Nothing to restore yet");
+    else setBackupMsg(res.error);
+  };
 
   useEffect(() => {
     getPersonaName(s.prefs).then((n) => {
@@ -134,20 +188,48 @@ export function SettingsScreen({ account = safeDefaultAccount() }: { account?: A
         <Section title="Cloud backup & sync">
           <Card>
             {acct ? (
-              <View style={styles.topicRow}>
-                <Text style={styles.factText}>{acct.email}</Text>
-                <PressableScale
-                  onPress={async () => {
-                    await account.signOut();
-                    refreshAccount();
-                  }}
-                  accessibilityLabel="Sign out"
-                  hitSlop={12}
-                  style={styles.forget}
-                >
-                  <Ionicons name="log-out-outline" size={18} color={colors.muted} />
-                </PressableScale>
-              </View>
+              <>
+                <View style={styles.topicRow}>
+                  <Text style={styles.factText}>{acct.email}</Text>
+                  <PressableScale
+                    onPress={async () => { await account.signOut(); refreshAccount(); }}
+                    accessibilityLabel="Sign out"
+                    hitSlop={12}
+                    style={styles.forget}
+                  >
+                    <Ionicons name="log-out-outline" size={18} color={colors.muted} />
+                  </PressableScale>
+                </View>
+                <Text style={styles.empty}>
+                  {lastBackupAt ? `Last backed up: ${new Date(lastBackupAt).toLocaleString()}` : "Not backed up yet"}
+                </Text>
+                {backupBusy ? <ActivityIndicator accessibilityLabel="working" color={colors.accent} style={{ marginVertical: space.md }} /> : null}
+                {backupMsg ? <Text style={styles.empty}>{backupMsg}</Text> : null}
+                {conflict ? (
+                  <>
+                    <Text style={styles.empty}>A newer backup exists on another device.</Text>
+                    <View style={{ height: space.sm }} />
+                    <GradientButton label="Restore first" onPress={() => { setConflict(false); setConfirmRestore(true); }} accessibilityLabel="Restore first" />
+                    <View style={{ height: space.sm }} />
+                    <GradientButton variant="danger" label="Overwrite" onPress={() => runBackup({ force: true })} accessibilityLabel="Overwrite" />
+                  </>
+                ) : confirmRestore ? (
+                  <>
+                    <Text style={styles.empty}>This replaces this device's data with your last backup.</Text>
+                    <View style={{ height: space.sm }} />
+                    <GradientButton label="Confirm restore" onPress={runRestore} accessibilityLabel="Confirm restore" />
+                    <View style={{ height: space.sm }} />
+                    <GradientButton variant="ghost" label="Cancel" onPress={() => setConfirmRestore(false)} accessibilityLabel="Cancel restore" />
+                  </>
+                ) : (
+                  <>
+                    <View style={{ height: space.sm }} />
+                    <GradientButton label="Back up now" onPress={() => runBackup()} disabled={backupBusy} accessibilityLabel="Back up now" />
+                    <View style={{ height: space.sm }} />
+                    <GradientButton variant="ghost" label="Restore" onPress={() => setConfirmRestore(true)} accessibilityLabel="Restore" />
+                  </>
+                )}
+              </>
             ) : (
               <>
                 <Text style={styles.empty}>
