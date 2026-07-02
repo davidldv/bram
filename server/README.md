@@ -7,8 +7,11 @@ Thin, stateless proxy for the Bram app. Holds the Claude + news API keys; stores
 - `POST /news` — `{ topics }` → `{ headlines }`
 - `GET /health` — `{ ok: true }` (open, for liveness checks)
 
-`/chat` and `/news` require the `x-bram-key` header to match `CLIENT_SECRET` when it
-is set. Leave `CLIENT_SECRET` unset only for local dev — the server warns on startup.
+`/chat` and `/news` require a Supabase user JWT (`Authorization: Bearer <token>`),
+verified locally against the project JWKS when `SUPABASE_URL` is set. Requests are
+rate-limited per user id. The app signs installs in anonymously, so no signup wall —
+enable **Anonymous sign-ins** in the Supabase dashboard (Authentication → Sign In/Up).
+Leave `SUPABASE_URL` unset only for local dev — the server warns on startup.
 
 ## Setup
 1. `pnpm install`

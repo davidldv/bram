@@ -14,7 +14,8 @@ import { createVoiceCapture } from "../speech/stt";
 import { createNotifier } from "../notify/notifier";
 import { createCalendar } from "../calendar/calendar";
 import { getPersonaName } from "../core/persona";
-import { getBackendBaseUrl, getClientSecret } from "./config";
+import { getAccessToken } from "../auth/token";
+import { getBackendBaseUrl } from "./config";
 import type { Services } from "./services";
 
 export async function buildServices(): Promise<Services> {
@@ -27,7 +28,7 @@ export async function buildServices(): Promise<Services> {
   await migrateMemories({ store, memories: createSqliteMemoryRepository(db), prefs, newId });
 
   return {
-    api: createBramApi({ baseUrl: getBackendBaseUrl(), clientSecret: getClientSecret() }),
+    api: createBramApi({ baseUrl: getBackendBaseUrl(), getToken: getAccessToken }),
     plans: createSqlitePlanRepository(db),
     topics: createSqliteTopicRepository(db),
     prefs,

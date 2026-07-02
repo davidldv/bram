@@ -7,20 +7,22 @@ export interface BramApi {
 
 export function createBramApi(opts: {
   baseUrl: string;
-  clientSecret?: string;
+  getToken?: () => Promise<string | null>;
   fetchFn?: typeof fetch;
 }): BramApi {
   const fetchFn = opts.fetchFn ?? fetch;
   const base = opts.baseUrl.replace(/\/$/, "");
-  const postJson = async (path: string, payload: unknown): Promise<Response> =>
-    fetchFn(`${base}${path}`, {
+  const postJson = async (path: string, payload: unknown): Promise<Response> => {
+    const token = opts.getToken ? await opts.getToken() : null;
+    return fetchFn(`${base}${path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        ...(opts.clientSecret ? { "x-bram-key": opts.clientSecret } : {}),
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: JSON.stringify(payload),
     });
+  };
 
   return {
     async chat(system, messages) {

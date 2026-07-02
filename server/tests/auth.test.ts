@@ -6,28 +6,41 @@ import type { LlmClient } from "../src/services/llm";
 
 const llm: LlmClient = { chat: async () => "ok" };
 const news: NewsClient = { fetchHeadlines: async () => [] };
-const app = createApp({ llm, news, maxTokens: 256, clientSecret: "s3cret" });
+// Fake verifier: accepts "token-<userId>", rejects everything else.
+const verifyToken = async (token: string): Promise<string> => {
+  if (!token.startsWith("token-")) throw new Error("invalid token");
+  return token.slice("token-".length);
+};
+const app = createApp({ llm, news, maxTokens: 256, verifyToken });
 const body = { system: "x", messages: [{ role: "user", content: "hi" }] };
 
-describe("x-bram-key auth", () => {
-  it("rejects a missing key with 401", async () => {
+describe("supabase jwt auth", () => {
+  it("rejects a missing Authorization header with 401", async () => {
     const res = await request(app).post("/chat").send(body);
     expect(res.status).toBe(401);
   });
 
-  it("rejects a wrong key with 401", async () => {
-    const res = await request(app).post("/chat").set("x-bram-key", "nope").send(body);
+  it("rejects a non-Bearer Authorization header with 401", async () => {
+    const res = await request(app).post("/chat").set("Authorization", "Basic abc").send(body);
     expect(res.status).toBe(401);
   });
 
-  it("rejects a right prefix of the key with 401", async () => {
-    const res = await request(app).post("/chat").set("x-bram-key", "s3cre").send(body);
+  it("rejects an invalid token with 401", async () => {
+    const res = await request(app).post("/chat").set("Authorization", "Bearer nope").send(body);
     expect(res.status).toBe(401);
   });
 
-  it("allows the correct key", async () => {
-    const res = await request(app).post("/chat").set("x-bram-key", "s3cret").send(body);
+  it("allows a valid token", async () => {
+    const res = await request(app)
+      .post("/chat")
+      .set("Authorization", "Bearer token-user1")
+      .send(body);
     expect(res.status).toBe(200);
+  });
+
+  it("protects /news too", async () => {
+    const res = await request(app).post("/news").send({ topics: ["tech"] });
+    expect(res.status).toBe(401);
   });
 
   it("leaves /health open", async () => {
