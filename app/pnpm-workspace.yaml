@@ -11,6 +11,8 @@ virtualStoreDirMaxLength: 20
 # falls back to pure JS, so nothing breaks and we avoid an unneeded build script.
 allowBuilds:
   msgpackr-extract: false
+# 7-day cooldown (in minutes) before newly published versions may resolve.
+minimumReleaseAge: 10080
 minimumReleaseAgeExclude:
   - '@expo/cli@56.1.14'
   - '@expo/fingerprint@0.19.4'
