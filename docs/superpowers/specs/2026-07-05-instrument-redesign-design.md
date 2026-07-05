@@ -87,8 +87,8 @@ transforms/opacity, 2–3 animated values. No halo, no sheen, no radial gradient
 
 ### `ui/TabBar.tsx`
 Solid `base` background, hairline top. Active item: icon + label in `colors.text`;
-inactive: `muted`. The animated lozenge becomes a 16×2 px accent underline that slides
-(keep the existing slide spring, damped).
+inactive: `muted`. The animated lozenge becomes a 24×2 px accent tick at the bar's top
+edge that slides to the active item (keep the existing slide spring, damped).
 
 ### `ui/Section.tsx`
 Accent tick deleted. Title in mono, uppercase, `muted`, letterSpacing 1.5, with a
@@ -121,7 +121,7 @@ Circle becomes hairline-bordered (`hairlineStrong`), no tinted fill; icon in `te
 `PressableScale` press-out bounciness 7 → 0. Entrance unchanged.
 
 ### `screens/ConversationScreen.tsx`
-- Wordmark: `BRAM` — mono, uppercase, letterSpacing 4, small (13), `textDim`.
+- Wordmark: `BRAM` — mono, uppercase, letterSpacing 4, `font.small`, `textDim`.
 - Welcome copy unchanged; "orb" wording in copy becomes "dial"-neutral ("Tap to talk").
 - Status pill → bare row: dot + mono lowercase status. Dot: `muted` when idle,
   `accent` otherwise (single-accent rule replaces the 3-color DOT map).
@@ -145,8 +145,10 @@ block in mono. `Screen ambient` prop dropped.
 - Spinner `textDim`.
 
 ### `screens/NodeDetailScreen.tsx`
-`TYPE_COLOR` → the same grey tiers. Back chevron/label, relation links: `textDim`
-(no accent). Inputs/dividers inherit tokens.
+`TYPE_COLOR` deleted; the type chip becomes a neutral hairline pill with a mono
+uppercase tag in `textDim` (category is typography, not color — and the `fact` grey
+tier is too dim for text). Back chevron/label: `textDim`. Relation links: `text`
+(the chevron is the affordance). Inputs/dividers inherit tokens.
 
 ## Out of scope
 - `img/` marketing screenshots (regenerate after the redesign ships, separately).
