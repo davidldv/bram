@@ -1,18 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, PanResponder, StyleSheet, LayoutChangeEvent, ActivityIndicator } from "react-native";
-import Svg, { Defs, RadialGradient, Stop, G, Line, Circle, Text as SvgText } from "react-native-svg";
+import Svg, { G, Line, Circle, Text as SvgText } from "react-native-svg";
 import { useServices } from "../app/services";
 import { useGraphLayout } from "../ui/graph/use-graph-layout";
 import type { Entity, EntityType } from "../core/types";
 import { Screen } from "../ui/Screen";
 import { EmptyState } from "../ui/EmptyState";
-import { colors, font, radius, space } from "../ui/theme";
-
-const NODE_COLOR: Record<EntityType, string> = {
-  person: colors.accent,
-  goal: colors.reminder,
-  fact: colors.task,
-};
+import { colors, entityTier, font, radius, space } from "../ui/theme";
 
 const LEGEND: { type: EntityType; label: string }[] = [
   { type: "person", label: "People" },
@@ -82,7 +76,7 @@ export function GraphScreen({ onSelect }: { onSelect: (entityId: string) => void
     return (
       <Screen>
         <View style={styles.center}>
-          <ActivityIndicator color={colors.accent} />
+          <ActivityIndicator color={colors.textDim} />
         </View>
       </Screen>
     );
@@ -104,66 +98,44 @@ export function GraphScreen({ onSelect }: { onSelect: (entityId: string) => void
     <Screen>
       <View style={styles.canvas} onLayout={onLayout} {...pan.panHandlers}>
         <Svg width="100%" height="100%">
-          <Defs>
-            {(Object.keys(NODE_COLOR) as EntityType[]).map((type) => (
-              <RadialGradient key={type} id={`node-${type}`} cx="38%" cy="32%" r="75%">
-                <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0.85" />
-                <Stop offset="0.35" stopColor={NODE_COLOR[type]} />
-                <Stop offset="1" stopColor={NODE_COLOR[type]} stopOpacity="0.9" />
-              </RadialGradient>
-            ))}
-          </Defs>
           <G transform={`translate(${t.current.x},${t.current.y}) scale(${t.current.scale})`}>
             {edges.map(([a, b], i) => {
               const na = pos.get(a);
               const nb = pos.get(b);
               if (!na || !nb) return null;
               return (
-                <React.Fragment key={i}>
-                  <Line
-                    x1={na.x ?? 0}
-                    y1={na.y ?? 0}
-                    x2={nb.x ?? 0}
-                    y2={nb.y ?? 0}
-                    stroke={colors.accent}
-                    strokeOpacity={0.1}
-                    strokeWidth={5}
-                    strokeLinecap="round"
-                  />
-                  <Line
-                    x1={na.x ?? 0}
-                    y1={na.y ?? 0}
-                    x2={nb.x ?? 0}
-                    y2={nb.y ?? 0}
-                    stroke={colors.accent}
-                    strokeOpacity={0.5}
-                    strokeWidth={1.5}
-                    strokeLinecap="round"
-                  />
-                </React.Fragment>
+                <Line
+                  key={i}
+                  x1={na.x ?? 0}
+                  y1={na.y ?? 0}
+                  x2={nb.x ?? 0}
+                  y2={nb.y ?? 0}
+                  stroke="#FFFFFF"
+                  strokeOpacity={0.12}
+                  strokeWidth={1.5}
+                  strokeLinecap="round"
+                />
               );
             })}
             {nodes.map((n) => {
               const r = radiusFor(n.degree);
               return (
                 <React.Fragment key={n.id}>
-                  <Circle cx={n.x ?? 0} cy={n.y ?? 0} r={r * 2.3} fill={NODE_COLOR[n.type]} fillOpacity={0.14} />
                   <Circle
                     cx={n.x ?? 0}
                     cy={n.y ?? 0}
                     r={r}
-                    fill={`url(#node-${n.type})`}
-                    stroke="#FFFFFF"
-                    strokeOpacity={0.25}
+                    fill={entityTier[n.type]}
+                    stroke="rgba(255,255,255,0.15)"
                     strokeWidth={1}
                     onPress={() => onSelect(n.id)}
                   />
                   <SvgText
                     x={n.x ?? 0}
                     y={(n.y ?? 0) + r + 14}
-                    fill={colors.textDim}
-                    fontSize={11}
-                    fontWeight="500"
+                    fill={colors.muted}
+                    fontSize={10}
+                    fontFamily={font.mono}
                     textAnchor="middle"
                   >
                     {n.name}
@@ -177,7 +149,7 @@ export function GraphScreen({ onSelect }: { onSelect: (entityId: string) => void
         <View style={styles.legend} pointerEvents="none">
           {LEGEND.map((l) => (
             <View key={l.type} style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: NODE_COLOR[l.type] }]} />
+              <View style={[styles.legendDot, { backgroundColor: entityTier[l.type] }]} />
               <Text style={styles.legendLabel}>{l.label}</Text>
             </View>
           ))}
@@ -195,10 +167,10 @@ const styles = StyleSheet.create({
     top: space.md,
     alignSelf: "center",
     flexDirection: "row",
-    backgroundColor: "rgba(16,19,31,0.8)",
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.hairline,
-    borderRadius: radius.pill,
+    borderRadius: radius.card,
     paddingHorizontal: space.md,
     paddingVertical: space.sm,
     gap: space.md,
