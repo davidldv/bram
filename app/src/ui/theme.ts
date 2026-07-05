@@ -21,13 +21,6 @@ export const colors = {
   // The one accent: live/active state only (mic hot, active tab, switch on).
   accent: "#E8A33D",
   danger: "#D97A70",
-  // ── Transitional aliases (Midnight Aurora migration) — deleted in the
-  // final cleanup task. Do not add new usages.
-  reminder: "#E8A33D",
-  event: "#A9A9A2",
-  task: "#6E6E67",
-  accent2: "#E8A33D",
-  accentCyan: "#F2F2EF",
 } as const;
 
 // Category is typography, not color: a monospace tag per plan type.
@@ -43,19 +36,6 @@ export const entityTier = {
   goal: "#9A9A93",
   fact: "#5E5E58",
 } as const;
-
-// Transitional — deleted in the final cleanup task.
-export const planColor: Record<PlanType, string> = {
-  reminder: colors.accent,
-  event: colors.textDim,
-  task: colors.muted,
-};
-
-// Transitional — deleted in the final cleanup task.
-export const gradients = {
-  brand: [colors.accent, colors.accent] as const,
-  brandWide: [colors.text, colors.accent, colors.accent] as const,
-};
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 36 } as const;
 
