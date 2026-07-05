@@ -1,25 +1,25 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
-import Svg, { Defs, RadialGradient, Stop, Circle } from "react-native-svg";
+import Svg, { Circle } from "react-native-svg";
 import { colors } from "./theme";
 
 export type OrbState = "idle" | "listening" | "thinking" | "speaking";
 
-// Per-state breathing config: [min scale, max scale, half-cycle ms].
-const CONFIG: Record<OrbState, [number, number, number]> = {
-  idle: [1.0, 1.05, 2200],
-  listening: [1.04, 1.16, 560],
-  thinking: [0.99, 1.05, 1000],
-  speaking: [1.0, 1.12, 380],
+const SIZE = 132;
+const WRAP = Math.round(SIZE * 1.6);
+const R = SIZE / 2;
+
+// Half-cycle of the ping-pong pulse per state, ms.
+const PULSE_MS: Record<OrbState, number> = {
+  idle: 2600,
+  listening: 900,
+  thinking: 1000,
+  speaking: 420,
 };
 
-const SIZE = 156;
-const GLOW = SIZE * 1.95;
-
-// The signature element: a glowing brand-gradient sphere. A soft radial halo
-// breathes with the conversation state; a specular sheen orbits slowly for a
-// living, three-dimensional feel. All motion is native-driven (View transforms);
-// the gradients are static SVG.
+// A flat mic dial. State is expressed by ring motion, not glow: idle breathes
+// the center dot, listening ticks a ring outward, thinking rotates a dashed
+// arc, speaking pulses the disc on a quick rhythm. All motion native-driven.
 export function Orb({
   state,
   onPress,
@@ -29,22 +29,22 @@ export function Orb({
   onPress: () => void;
   disabled?: boolean;
 }) {
-  const pulse = useRef(new Animated.Value(0)).current;
-  const spin = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(0)).current; // ping-pong 0↔1
+  const sweep = useRef(new Animated.Value(0)).current; // sawtooth 0→1
 
   useEffect(() => {
-    const [, , ms] = CONFIG[state];
+    pulse.setValue(0);
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(pulse, {
           toValue: 1,
-          duration: ms,
+          duration: PULSE_MS[state],
           easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
         Animated.timing(pulse, {
           toValue: 0,
-          duration: ms,
+          duration: PULSE_MS[state],
           easing: Easing.inOut(Easing.quad),
           useNativeDriver: true,
         }),
@@ -55,64 +55,96 @@ export function Orb({
   }, [state, pulse]);
 
   useEffect(() => {
-    const duration = state === "idle" ? 16000 : 6000;
-    spin.setValue(0);
+    sweep.setValue(0);
+    const listening = state === "listening";
     const loop = Animated.loop(
-      Animated.timing(spin, { toValue: 1, duration, easing: Easing.linear, useNativeDriver: true })
+      Animated.timing(sweep, {
+        toValue: 1,
+        duration: listening ? 900 : 1400,
+        easing: listening ? Easing.out(Easing.quad) : Easing.linear,
+        useNativeDriver: true,
+      })
     );
     loop.start();
     return () => loop.stop();
-  }, [state, spin]);
+  }, [state, sweep]);
 
-  const [min, max] = CONFIG[state];
-  const scale = pulse.interpolate({ inputRange: [0, 1], outputRange: [min, max] });
-  const haloOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 0.7] });
-  const rotate = spin.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
+  const discScale = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: state === "speaking" ? [1, 1.05] : [1, 1],
+  });
+  const dotOpacity = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange:
+      state === "idle" ? [0.3, 1] : state === "thinking" ? [0.35, 0.35] : [1, 1],
+  });
+  const tickScale = sweep.interpolate({ inputRange: [0, 1], outputRange: [1, 1.5] });
+  const tickOpacity = sweep.interpolate({ inputRange: [0, 1], outputRange: [0.45, 0] });
+  const rotate = sweep.interpolate({ inputRange: [0, 1], outputRange: ["0deg", "360deg"] });
 
   return (
     <Pressable onPress={onPress} disabled={disabled} accessibilityLabel="Talk" hitSlop={24}>
       <View style={styles.wrap}>
-        {/* Soft breathing halo */}
-        <Animated.View
-          style={[styles.layer, { opacity: haloOpacity, transform: [{ scale }] }]}
-          pointerEvents="none"
-        >
-          <Svg width={GLOW} height={GLOW}>
-            <Defs>
-              <RadialGradient id="orb-halo" cx="50%" cy="50%" r="50%">
-                <Stop offset="0" stopColor={colors.accent} stopOpacity="0.55" />
-                <Stop offset="0.55" stopColor={colors.accent2} stopOpacity="0.22" />
-                <Stop offset="1" stopColor={colors.accent2} stopOpacity="0" />
-              </RadialGradient>
-            </Defs>
-            <Circle cx={GLOW / 2} cy={GLOW / 2} r={GLOW / 2} fill="url(#orb-halo)" />
-          </Svg>
-        </Animated.View>
-
-        {/* Gradient sphere */}
-        <Animated.View style={[styles.sphere, { transform: [{ scale }] }]}>
-          <Svg width={SIZE} height={SIZE}>
-            <Defs>
-              <RadialGradient id="orb-fill" cx="34%" cy="28%" r="80%">
-                <Stop offset="0" stopColor={colors.accentCyan} />
-                <Stop offset="0.45" stopColor={colors.accent} />
-                <Stop offset="1" stopColor={colors.accent2} />
-              </RadialGradient>
-              <RadialGradient id="orb-shade" cx="50%" cy="50%" r="50%">
-                <Stop offset="0.6" stopColor="#000000" stopOpacity="0" />
-                <Stop offset="1" stopColor="#05060C" stopOpacity="0.4" />
-              </RadialGradient>
-            </Defs>
-            <Circle cx={SIZE / 2} cy={SIZE / 2} r={SIZE / 2 - 1} fill="url(#orb-fill)" />
-            <Circle cx={SIZE / 2} cy={SIZE / 2} r={SIZE / 2 - 1} fill="url(#orb-shade)" />
-          </Svg>
-          {/* Orbiting specular sheen */}
+        {/* Listening: a thin ring ticks outward and fades */}
+        {state === "listening" && (
           <Animated.View
-            style={[StyleSheet.absoluteFill, styles.sheenWrap, { transform: [{ rotate }] }]}
+            style={[styles.layer, { opacity: tickOpacity, transform: [{ scale: tickScale }] }]}
             pointerEvents="none"
           >
-            <View style={styles.sheen} />
+            <Svg width={WRAP} height={WRAP}>
+              <Circle
+                cx={WRAP / 2}
+                cy={WRAP / 2}
+                r={R}
+                stroke="#FFFFFF"
+                strokeOpacity={0.8}
+                strokeWidth={1}
+                fill="none"
+              />
+            </Svg>
           </Animated.View>
+        )}
+
+        {/* The dial: flat disc, hairline rim, static concentric rings */}
+        <Animated.View style={{ transform: [{ scale: discScale }] }}>
+          <Svg width={SIZE} height={SIZE}>
+            <Circle
+              cx={R}
+              cy={R}
+              r={R - 1}
+              fill={colors.surface}
+              stroke={colors.hairlineStrong}
+              strokeWidth={1}
+            />
+            <Circle cx={R} cy={R} r={R * 0.72} stroke="rgba(255,255,255,0.10)" strokeWidth={1} fill="none" />
+            <Circle cx={R} cy={R} r={R * 0.48} stroke="rgba(255,255,255,0.08)" strokeWidth={1} fill="none" />
+          </Svg>
+
+          {/* Thinking: a dashed arc rotates */}
+          {state === "thinking" && (
+            <Animated.View
+              style={[StyleSheet.absoluteFill, { transform: [{ rotate }] }]}
+              pointerEvents="none"
+            >
+              <Svg width={SIZE} height={SIZE}>
+                <Circle
+                  cx={R}
+                  cy={R}
+                  r={R * 0.6}
+                  stroke="rgba(255,255,255,0.35)"
+                  strokeWidth={1.5}
+                  strokeDasharray="4 10"
+                  strokeLinecap="round"
+                  fill="none"
+                />
+              </Svg>
+            </Animated.View>
+          )}
+
+          {/* Center dot — the only color on the dial */}
+          <View style={styles.dotWrap} pointerEvents="none">
+            <Animated.View style={[styles.dot, { opacity: dotOpacity }]} />
+          </View>
         </Animated.View>
       </View>
     </Pressable>
@@ -120,22 +152,22 @@ export function Orb({
 }
 
 const styles = StyleSheet.create({
-  wrap: { width: GLOW, height: GLOW, alignItems: "center", justifyContent: "center" },
-  layer: { position: "absolute", width: GLOW, height: GLOW, alignItems: "center", justifyContent: "center" },
-  sphere: {
-    width: SIZE,
-    height: SIZE,
-    borderRadius: SIZE / 2,
-    overflow: "hidden",
+  wrap: { width: WRAP, height: WRAP, alignItems: "center", justifyContent: "center" },
+  layer: {
+    position: "absolute",
+    width: WRAP,
+    height: WRAP,
     alignItems: "center",
     justifyContent: "center",
   },
-  sheenWrap: { alignItems: "center", justifyContent: "flex-start", paddingTop: SIZE * 0.12 },
-  sheen: {
-    width: SIZE * 0.46,
-    height: SIZE * 0.46,
-    borderRadius: SIZE,
-    backgroundColor: "#FFFFFF",
-    opacity: 0.18,
+  dotWrap: {
+    position: "absolute" as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: "center",
+    justifyContent: "center",
   },
+  dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.accent },
 });
