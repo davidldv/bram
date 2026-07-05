@@ -10,6 +10,7 @@ const WRAP = Math.round(SIZE * 1.6);
 const R = SIZE / 2;
 
 // Half-cycle of the ping-pong pulse per state, ms.
+// thinking/listening: pulse outputs are constant; their cadence comes from the sweep loop.
 const PULSE_MS: Record<OrbState, number> = {
   idle: 2600,
   listening: 900,

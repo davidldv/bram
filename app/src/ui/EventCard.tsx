@@ -2,7 +2,7 @@ import React from "react";
 import { Animated, Text, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { CalendarEvent } from "../core/types";
-import { colors, font, space } from "./theme";
+import { colors, font, space, planTag } from "./theme";
 import { formatRelative } from "./relative-time";
 import { useEntrance } from "./motion";
 
@@ -33,7 +33,7 @@ export function EventCard({
         <Text style={styles.title} numberOfLines={2}>
           {event.title}
         </Text>
-        <Text style={styles.meta}>EVT · {when}</Text>
+        <Text style={styles.meta}>{planTag.event} · {when}</Text>
       </View>
     </Animated.View>
   );

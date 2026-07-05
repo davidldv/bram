@@ -126,7 +126,7 @@ export function GraphScreen({ onSelect }: { onSelect: (entityId: string) => void
                     cy={n.y ?? 0}
                     r={r}
                     fill={entityTier[n.type]}
-                    stroke="rgba(255,255,255,0.15)"
+                    stroke={colors.hairlineStrong}
                     strokeWidth={1}
                     onPress={() => onSelect(n.id)}
                   />

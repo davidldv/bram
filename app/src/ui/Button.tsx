@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   },
   primary: { backgroundColor: colors.text },
   ghost: { borderWidth: 1, borderColor: colors.hairlineStrong },
-  danger: { borderWidth: 1, borderColor: "rgba(217,122,112,0.4)" },
+  danger: { borderWidth: 1, borderColor: colors.danger + "66" },
   disabled: { backgroundColor: colors.surfaceHi },
   label: {
     color: colors.text,
