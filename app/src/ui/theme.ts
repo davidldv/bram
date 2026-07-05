@@ -1,49 +1,66 @@
-// Single source of truth for Bram's look — "Midnight Aurora": a deep, calm
-// dark canvas lit by an indigo→violet→cyan brand glow. No dependencies; all
-// gradients are drawn with react-native-svg (already linked for the graph).
+// Single source of truth for Bram's look — "Instrument": a precision audio
+// instrument. Warm ink surfaces, structure from hairlines and typography, a
+// monospace meta layer, and one signal-amber accent reserved for live/active
+// state. No gradients, no glow, no tinted glass.
+import { Platform } from "react-native";
 import type { PlanType } from "../core/types";
 
 export const colors = {
-  // Backdrop (top→bottom wash lives in AuroraBackground)
-  base: "#070810",
-  baseElev: "#0C0E1A",
-  // Layered surfaces
-  surface: "#10131F",
-  surfaceRaised: "#161A2A",
-  surfaceHi: "#1D2235",
-  // Text
-  text: "#F3F4FA",
-  textDim: "#AEB4CC",
-  muted: "#737B95",
+  // Ink backdrop + layered surfaces
+  base: "#0A0A0B",
+  surface: "#131315",
+  surfaceRaised: "#1A1A1D",
+  surfaceHi: "#222226",
+  // Text — warm grey ramp
+  text: "#F2F2EF",
+  textDim: "#A9A9A2",
+  muted: "#6E6E67",
   // Lines / dividers (translucent so they read on any surface)
-  hairline: "rgba(255,255,255,0.08)",
-  hairlineStrong: "rgba(255,255,255,0.14)",
-  // Brand
-  accent: "#7C8CFF", // indigo (primary)
-  accent2: "#B98CFF", // violet
-  accentCyan: "#5BE3E8", // cyan glint
-  // Semantic — keep as hex (composed with alpha suffixes elsewhere, e.g. tint+"22")
-  reminder: "#FFB23E",
-  event: "#7C8CFF",
-  task: "#41D9B4",
-  danger: "#FF6F87",
+  hairline: "rgba(255,255,255,0.07)",
+  hairlineStrong: "rgba(255,255,255,0.13)",
+  // The one accent: live/active state only (mic hot, active tab, switch on).
+  accent: "#E8A33D",
+  danger: "#D97A70",
+  // ── Transitional aliases (Midnight Aurora migration) — deleted in the
+  // final cleanup task. Do not add new usages.
+  reminder: "#E8A33D",
+  event: "#A9A9A2",
+  task: "#6E6E67",
+  accent2: "#E8A33D",
+  accentCyan: "#F2F2EF",
+  baseElev: "#131315", // temporary: AuroraBackground consumed by task 2
 } as const;
 
-export const planColor: Record<PlanType, string> = {
-  reminder: colors.reminder,
-  event: colors.event,
-  task: colors.task,
+// Category is typography, not color: a monospace tag per plan type.
+export const planTag: Record<PlanType, string> = {
+  reminder: "REM",
+  event: "EVT",
+  task: "TSK",
 };
 
-// Two-stop brand gradient (buttons, accents); wide three-stop for the Orb.
+// Graph entity types in grey tiers — brightness = prominence, not hue.
+export const entityTier = {
+  person: "#E8E8E4",
+  goal: "#9A9A93",
+  fact: "#5E5E58",
+} as const;
+
+// Transitional — deleted in the final cleanup task.
+export const planColor: Record<PlanType, string> = {
+  reminder: colors.accent,
+  event: colors.textDim,
+  task: colors.muted,
+};
+
+// Transitional — deleted in the final cleanup task.
 export const gradients = {
-  brand: [colors.accent, colors.accent2] as const,
-  brandWide: [colors.accentCyan, colors.accent, colors.accent2] as const,
+  brand: [colors.accent, colors.accent] as const,
+  brandWide: [colors.text, colors.accent, colors.accent] as const,
 };
 
 export const space = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 36 } as const;
 
-export const radius = { sm: 10, card: 16, lg: 22, xl: 28, pill: 999 } as const;
+export const radius = { sm: 6, card: 10, lg: 14, pill: 999 } as const;
 
 export const font = {
   micro: 11,
@@ -54,22 +71,17 @@ export const font = {
   display: 30,
   hero: 40,
   weight: { regular: "400", medium: "500", semibold: "600", bold: "700" },
+  // The meta layer: timestamps, tags, status lines, section labels, wordmark.
+  mono: Platform.select({ ios: "Menlo", default: "monospace" }) as string,
 } as const;
 
-// Soft elevation for raised cards / floating controls. Subtle on dark.
+// One subtle elevation for grouped cards. Borders carry structure; no glow.
 export const shadow = {
   card: {
     shadowColor: "#000000",
-    shadowOpacity: 0.35,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 6,
-  },
-  glow: {
-    shadowColor: colors.accent,
-    shadowOpacity: 0.55,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 10,
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
   },
 } as const;
