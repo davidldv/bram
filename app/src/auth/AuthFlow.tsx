@@ -92,7 +92,7 @@ export function AuthFlow({
                   style={styles.input}
                 />
                 {error ? <Text style={styles.error}>{error}</Text> : null}
-                {busy ? <ActivityIndicator accessibilityLabel="working" color={colors.accent} style={styles.spinner} /> : null}
+                {busy ? <ActivityIndicator accessibilityLabel="working" color={colors.textDim} style={styles.spinner} /> : null}
                 {step === "login" ? (
                   <>
                     <Button label={busy ? "Signing in…" : "Log in"} onPress={doSignIn} disabled={busy} accessibilityLabel="Log in" />
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   code: {
     color: colors.text,
     fontSize: font.body,
-    fontWeight: font.weight.bold,
+    fontFamily: font.mono,
     letterSpacing: 1,
     backgroundColor: colors.surfaceHi,
     borderRadius: radius.card,
@@ -197,5 +197,5 @@ const styles = StyleSheet.create({
   },
   ack: { paddingVertical: space.sm, marginBottom: space.md },
   linkBtn: { paddingVertical: space.md, alignItems: "center" },
-  link: { color: colors.accent, fontSize: font.body },
+  link: { color: colors.textDim, fontSize: font.body, textDecorationLine: "underline" },
 });

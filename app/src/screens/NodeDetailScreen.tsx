@@ -2,19 +2,13 @@ import React, { useEffect, useState } from "react";
 import { ScrollView, Text, TextInput, View, StyleSheet, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useServices } from "../app/services";
-import type { Entity, EntityType, LifeEvent } from "../core/types";
+import type { Entity, LifeEvent } from "../core/types";
 import { Screen } from "../ui/Screen";
 import { Section } from "../ui/Section";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { PressableScale } from "../ui/motion";
 import { colors, font, radius, space } from "../ui/theme";
-
-const TYPE_COLOR: Record<EntityType, string> = {
-  person: colors.accent,
-  goal: colors.reminder,
-  fact: colors.task,
-};
 
 export function NodeDetailScreen({
   entityId,
@@ -79,13 +73,12 @@ export function NodeDetailScreen({
   };
 
   const dirty = entity != null && name.trim() !== "" && name.trim() !== entity.name;
-  const tint = entity ? TYPE_COLOR[entity.type] : colors.accent;
 
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <PressableScale onPress={onBack} hitSlop={12} accessibilityLabel="Back to graph" style={styles.backBtn}>
-          <Ionicons name="chevron-back" size={18} color={colors.accent} />
+          <Ionicons name="chevron-back" size={18} color={colors.textDim} />
           <Text style={styles.back}>Graph</Text>
         </PressableScale>
 
@@ -97,8 +90,8 @@ export function NodeDetailScreen({
               <Text style={styles.title} numberOfLines={2}>
                 {entity.name}
               </Text>
-              <View style={[styles.chip, { backgroundColor: tint + "22", borderColor: tint + "55" }]}>
-                <Text style={[styles.chipText, { color: tint }]}>{entity.type}</Text>
+              <View style={styles.chip}>
+                <Text style={styles.chipText}>{entity.type}</Text>
               </View>
             </View>
 
@@ -167,7 +160,7 @@ export function NodeDetailScreen({
 const styles = StyleSheet.create({
   content: { padding: space.lg, paddingTop: space.xl, paddingBottom: space.xxl },
   backBtn: { flexDirection: "row", alignItems: "center", marginBottom: space.lg },
-  back: { color: colors.accent, fontSize: font.body, fontWeight: font.weight.medium },
+  back: { color: colors.textDim, fontSize: font.body, fontWeight: font.weight.medium },
   titleRow: { flexDirection: "row", alignItems: "center", marginBottom: space.xl },
   title: {
     color: colors.text,
@@ -180,10 +173,17 @@ const styles = StyleSheet.create({
   chip: {
     borderRadius: radius.pill,
     borderWidth: 1,
+    borderColor: colors.hairlineStrong,
     paddingHorizontal: space.md,
     paddingVertical: space.xs,
   },
-  chipText: { fontSize: font.small, fontWeight: font.weight.semibold, textTransform: "capitalize" },
+  chipText: {
+    color: colors.textDim,
+    fontSize: font.micro,
+    fontFamily: font.mono,
+    letterSpacing: 1,
+    textTransform: "uppercase",
+  },
   input: {
     color: colors.text,
     fontSize: font.body,
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: space.md,
   },
-  link: { color: colors.accent, fontSize: font.body, fontWeight: font.weight.medium },
+  link: { color: colors.text, fontSize: font.body, fontWeight: font.weight.medium },
   empty: { color: colors.muted, fontSize: font.body },
   delete: { marginTop: space.lg },
 });

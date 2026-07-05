@@ -203,7 +203,7 @@ export function SettingsScreen({
                 <Text style={styles.empty}>
                   {lastBackupAt ? `Last backed up: ${new Date(lastBackupAt).toLocaleString()}` : "Not backed up yet"}
                 </Text>
-                {backupBusy ? <ActivityIndicator accessibilityLabel="working" color={colors.accent} style={{ marginVertical: space.md }} /> : null}
+                {backupBusy ? <ActivityIndicator accessibilityLabel="working" color={colors.textDim} style={{ marginVertical: space.md }} /> : null}
                 {backupMsg ? <Text style={styles.empty}>{backupMsg}</Text> : null}
                 {conflict ? (
                   <>
