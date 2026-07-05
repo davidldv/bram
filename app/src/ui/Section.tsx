@@ -12,8 +12,8 @@ export function Section({
   return (
     <View style={styles.section}>
       <View style={styles.head}>
-        <View style={styles.tick} />
         <Text style={styles.title}>{title.toUpperCase()}</Text>
+        <View style={styles.rule} />
       </View>
       {children}
     </View>
@@ -22,18 +22,17 @@ export function Section({
 
 const styles = StyleSheet.create({
   section: { marginBottom: space.xl },
-  head: { flexDirection: "row", alignItems: "center", marginBottom: space.md },
-  tick: {
-    width: 3,
-    height: 12,
-    borderRadius: 2,
-    backgroundColor: colors.accent,
-    marginRight: space.sm,
+  head: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: space.md,
+    gap: space.md,
   },
   title: {
-    color: colors.textDim,
-    fontSize: font.small,
-    fontWeight: font.weight.semibold,
-    letterSpacing: 1.6,
+    color: colors.muted,
+    fontSize: font.micro,
+    fontFamily: font.mono,
+    letterSpacing: 1.5,
   },
+  rule: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: colors.hairlineStrong },
 });

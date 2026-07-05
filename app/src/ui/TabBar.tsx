@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Animated, Pressable, View, Text, StyleSheet, type LayoutChangeEvent } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, font, radius, space } from "./theme";
+import { colors, font, space } from "./theme";
 
 export type Tab = "talk" | "agenda" | "graph" | "settings";
 
@@ -26,7 +26,7 @@ export function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) =
       toValue: idx * itemW,
       useNativeDriver: true,
       speed: 18,
-      bounciness: 9,
+      bounciness: 0,
     }).start();
   }, [idx, itemW, slide]);
 
@@ -39,7 +39,7 @@ export function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) =
           pointerEvents="none"
           style={[styles.indicator, { width: itemW, transform: [{ translateX: slide }] }]}
         >
-          <View style={styles.lozenge} />
+          <View style={styles.tick} />
         </Animated.View>
       )}
       {ITEMS.map((it) => {
@@ -55,9 +55,9 @@ export function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) =
             <Ionicons
               name={on ? it.iconActive : it.icon}
               size={22}
-              color={on ? colors.accent : colors.muted}
+              color={on ? colors.text : colors.muted}
             />
-            <Text style={[styles.label, { color: on ? colors.accent : colors.muted }]}>
+            <Text style={[styles.label, { color: on ? colors.text : colors.muted }]}>
               {it.label}
             </Text>
           </Pressable>
@@ -70,21 +70,14 @@ export function TabBar({ active, onChange }: { active: Tab; onChange: (t: Tab) =
 const styles = StyleSheet.create({
   bar: {
     flexDirection: "row",
-    backgroundColor: "rgba(12,14,24,0.92)",
+    backgroundColor: colors.base,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.hairlineStrong,
     paddingTop: space.sm,
     paddingBottom: space.md,
   },
-  indicator: { position: "absolute", top: space.sm, bottom: 0, alignItems: "center", justifyContent: "flex-start" },
-  lozenge: {
-    width: 56,
-    height: 34,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(124,140,255,0.16)",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(124,140,255,0.28)",
-  },
+  indicator: { position: "absolute", top: 0, alignItems: "center" },
+  tick: { width: 24, height: 2, backgroundColor: colors.accent },
   item: { flex: 1, alignItems: "center", paddingTop: space.sm, paddingBottom: space.xs },
   label: {
     fontSize: font.micro,

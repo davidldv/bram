@@ -21,5 +21,11 @@ const styles = StyleSheet.create({
     fontWeight: font.weight.bold,
     letterSpacing: -0.5,
   },
-  subtitle: { color: colors.muted, fontSize: font.body, marginTop: space.xs },
+  subtitle: {
+    color: colors.muted,
+    fontSize: font.small,
+    fontFamily: font.mono,
+    letterSpacing: 0.5,
+    marginTop: space.sm,
+  },
 });

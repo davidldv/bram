@@ -17,7 +17,7 @@ export function EmptyState({
   return (
     <Animated.View style={[styles.wrap, entrance]}>
       <View style={styles.ring}>
-        <Ionicons name={icon} size={30} color={colors.accent} />
+        <Ionicons name={icon} size={30} color={colors.textDim} />
       </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.text}>{text}</Text>
@@ -33,9 +33,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(124,140,255,0.12)",
     borderWidth: 1,
-    borderColor: "rgba(124,140,255,0.25)",
+    borderColor: colors.hairlineStrong,
     marginBottom: space.lg,
   },
   title: {
