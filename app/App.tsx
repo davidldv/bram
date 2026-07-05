@@ -39,10 +39,10 @@ export default function App() {
     <SafeAreaProvider>
       <StatusBar style="light" />
       {!services ? (
-        <Screen ambient>
+        <Screen>
           <View style={styles.loading}>
             <Orb state="thinking" onPress={() => {}} disabled />
-            <Text style={styles.brand}>Bram</Text>
+            <Text style={styles.brand}>BRAM</Text>
             <Text style={styles.loadingText}>Waking up…</Text>
           </View>
         </Screen>
@@ -79,11 +79,17 @@ const styles = StyleSheet.create({
   body: { flex: 1 },
   loading: { flex: 1, alignItems: "center", justifyContent: "center" },
   brand: {
-    color: colors.text,
-    fontSize: font.hero,
-    fontWeight: font.weight.bold,
-    letterSpacing: -1,
-    marginTop: space.md,
+    color: colors.textDim,
+    fontSize: font.title,
+    fontFamily: font.mono,
+    letterSpacing: 6,
+    marginTop: space.xl,
   },
-  loadingText: { color: colors.muted, fontSize: font.body, marginTop: space.sm },
+  loadingText: {
+    color: colors.muted,
+    fontSize: font.small,
+    fontFamily: font.mono,
+    letterSpacing: 0.5,
+    marginTop: space.sm,
+  },
 });

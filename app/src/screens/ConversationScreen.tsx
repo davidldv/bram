@@ -72,7 +72,7 @@ export function ConversationScreen() {
   };
 
   return (
-    <Screen ambient>
+    <Screen>
       <View style={styles.root}>
         <View style={styles.topBar}>
           <Text style={styles.wordmark}>Bram</Text>

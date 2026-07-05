@@ -63,7 +63,7 @@ export function AuthFlow({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <Screen ambient>
+      <Screen>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <Text style={styles.title}>
             {step === "signup" ? "Create your account" : step === "login" ? "Welcome back" : "Almost there"}

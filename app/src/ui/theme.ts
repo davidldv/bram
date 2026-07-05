@@ -28,7 +28,6 @@ export const colors = {
   task: "#6E6E67",
   accent2: "#E8A33D",
   accentCyan: "#F2F2EF",
-  baseElev: "#131315", // temporary: AuroraBackground consumed by task 2
 } as const;
 
 // Category is typography, not color: a monospace tag per plan type.
