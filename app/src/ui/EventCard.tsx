@@ -2,11 +2,12 @@ import React from "react";
 import { Animated, Text, View, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import type { CalendarEvent } from "../core/types";
-import { colors, font, radius, shadow, space } from "./theme";
+import { colors, font, space } from "./theme";
 import { formatRelative } from "./relative-time";
 import { useEntrance } from "./motion";
 
-// Read-only row for a device-calendar event (no checkbox / no delete).
+// Read-only row for a device-calendar event — same anatomy as PlanCard, with
+// a quiet calendar glyph where the toggle would sit.
 export function EventCard({
   event,
   now,
@@ -25,14 +26,14 @@ export function EventCard({
         : "");
   return (
     <Animated.View style={[styles.row, entrance]}>
-      <View style={styles.chip}>
-        <Ionicons name="calendar-outline" size={19} color={colors.event} />
+      <View style={styles.glyph}>
+        <Ionicons name="calendar-outline" size={16} color={colors.muted} />
       </View>
       <View style={styles.body}>
         <Text style={styles.title} numberOfLines={2}>
           {event.title}
         </Text>
-        <Text style={styles.time}>{when}</Text>
+        <Text style={styles.meta}>EVT · {when}</Text>
       </View>
     </Animated.View>
   );
@@ -42,26 +43,18 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.surface,
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderColor: colors.hairline,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.event,
-    padding: space.md,
-    marginBottom: space.sm,
-    ...shadow.card,
+    paddingVertical: space.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.hairline,
   },
-  chip: {
-    width: 40,
-    height: 40,
-    borderRadius: radius.pill,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: space.md,
-    backgroundColor: colors.event + "22",
-  },
+  glyph: { width: 22, alignItems: "center", marginRight: space.md },
   body: { flex: 1 },
-  title: { color: colors.text, fontSize: font.body, fontWeight: font.weight.semibold },
-  time: { color: colors.muted, fontSize: font.small, marginTop: 3 },
+  title: { color: colors.text, fontSize: font.body, fontWeight: font.weight.medium },
+  meta: {
+    color: colors.muted,
+    fontSize: font.micro,
+    fontFamily: font.mono,
+    letterSpacing: 0.5,
+    marginTop: 4,
+  },
 });
