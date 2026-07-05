@@ -4,7 +4,7 @@ import * as Clipboard from "expo-clipboard";
 import { Screen } from "../ui/Screen";
 import { Card } from "../ui/Card";
 import { Section } from "../ui/Section";
-import { GradientButton } from "../ui/GradientButton";
+import { Button } from "../ui/Button";
 import { PressableScale } from "../ui/motion";
 import { colors, font, radius, space } from "../ui/theme";
 import { account as defaultAccount, type Account } from "./account";
@@ -95,7 +95,7 @@ export function AuthFlow({
                 {busy ? <ActivityIndicator accessibilityLabel="working" color={colors.accent} style={styles.spinner} /> : null}
                 {step === "login" ? (
                   <>
-                    <GradientButton label={busy ? "Signing in…" : "Log in"} onPress={doSignIn} disabled={busy} accessibilityLabel="Log in" />
+                    <Button label={busy ? "Signing in…" : "Log in"} onPress={doSignIn} disabled={busy} accessibilityLabel="Log in" />
                     <PressableScale onPress={() => setStep("signup")} accessibilityLabel="Go to sign up" style={styles.linkBtn}>
                       <Text style={styles.link}>New here? Create an account</Text>
                     </PressableScale>
@@ -106,7 +106,7 @@ export function AuthFlow({
                       Your data is encrypted on this device first — we can never read it. That also means a lost
                       password can only be recovered with the recovery code on the next screen.
                     </Text>
-                    <GradientButton label={busy ? "Creating account…" : "Create account"} onPress={doSignUp} disabled={busy} accessibilityLabel="Create account" />
+                    <Button label={busy ? "Creating account…" : "Create account"} onPress={doSignUp} disabled={busy} accessibilityLabel="Create account" />
                     <PressableScale onPress={() => setStep("login")} accessibilityLabel="Go to log in" style={styles.linkBtn}>
                       <Text style={styles.link}>Already have an account? Log in</Text>
                     </PressableScale>
@@ -124,7 +124,7 @@ export function AuthFlow({
                   password. We don't store it and can't show it again.
                 </Text>
                 <Text style={styles.code} accessibilityLabel="recovery code">{recoveryCode}</Text>
-                <GradientButton
+                <Button
                   variant="ghost"
                   label={copied ? "Copied ✓" : "Copy"}
                   onPress={doCopy}
@@ -138,7 +138,7 @@ export function AuthFlow({
                 >
                   <Text style={styles.link}>{saved ? "☑" : "☐"} I've saved my recovery code</Text>
                 </PressableScale>
-                <GradientButton
+                <Button
                   label="Continue"
                   onPress={() => setStep("confirm")}
                   disabled={!saved}
@@ -154,7 +154,7 @@ export function AuthFlow({
                 <Text style={styles.note}>
                   Please check your email and confirm your address, then come back and log in.
                 </Text>
-                <GradientButton label="Back to log in" onPress={() => setStep("login")} accessibilityLabel="Back to log in" />
+                <Button label="Back to log in" onPress={() => setStep("login")} accessibilityLabel="Back to log in" />
               </Card>
             </Section>
           )}

@@ -38,7 +38,7 @@ export function usePressScale(to = 0.96) {
     onPressIn: () =>
       Animated.spring(v, { toValue: to, useNativeDriver: true, speed: 50, bounciness: 0 }).start(),
     onPressOut: () =>
-      Animated.spring(v, { toValue: 1, useNativeDriver: true, speed: 40, bounciness: 7 }).start(),
+      Animated.spring(v, { toValue: 1, useNativeDriver: true, speed: 40, bounciness: 0 }).start(),
   };
 }
 

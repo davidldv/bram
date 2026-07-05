@@ -8,7 +8,7 @@ import { Screen } from "../ui/Screen";
 import { Header } from "../ui/Header";
 import { Section } from "../ui/Section";
 import { Card } from "../ui/Card";
-import { GradientButton } from "../ui/GradientButton";
+import { Button } from "../ui/Button";
 import { PressableScale } from "../ui/motion";
 import { colors, font, radius, space } from "../ui/theme";
 import { AuthFlow } from "../auth/AuthFlow";
@@ -143,7 +143,7 @@ export function SettingsScreen({
               placeholderTextColor={colors.muted}
               style={styles.input}
             />
-            <GradientButton label="Save" onPress={save} disabled={!dirty} accessibilityLabel="Save" />
+            <Button label="Save" onPress={save} disabled={!dirty} accessibilityLabel="Save" />
           </Card>
         </Section>
 
@@ -209,24 +209,24 @@ export function SettingsScreen({
                   <>
                     <Text style={styles.empty}>A newer backup exists on another device.</Text>
                     <View style={{ height: space.sm }} />
-                    <GradientButton label="Restore first" onPress={() => { setConflict(false); setConfirmRestore(true); }} accessibilityLabel="Restore first" />
+                    <Button label="Restore first" onPress={() => { setConflict(false); setConfirmRestore(true); }} accessibilityLabel="Restore first" />
                     <View style={{ height: space.sm }} />
-                    <GradientButton variant="danger" label="Overwrite" onPress={() => runBackup({ force: true })} accessibilityLabel="Overwrite" />
+                    <Button variant="danger" label="Overwrite" onPress={() => runBackup({ force: true })} accessibilityLabel="Overwrite" />
                   </>
                 ) : confirmRestore ? (
                   <>
                     <Text style={styles.empty}>This replaces this device's data with your last backup.</Text>
                     <View style={{ height: space.sm }} />
-                    <GradientButton label="Confirm restore" onPress={runRestore} accessibilityLabel="Confirm restore" />
+                    <Button label="Confirm restore" onPress={runRestore} accessibilityLabel="Confirm restore" />
                     <View style={{ height: space.sm }} />
-                    <GradientButton variant="ghost" label="Cancel" onPress={() => setConfirmRestore(false)} accessibilityLabel="Cancel restore" />
+                    <Button variant="ghost" label="Cancel" onPress={() => setConfirmRestore(false)} accessibilityLabel="Cancel restore" />
                   </>
                 ) : (
                   <>
                     <View style={{ height: space.sm }} />
-                    <GradientButton label="Back up now" onPress={() => runBackup()} disabled={backupBusy} accessibilityLabel="Back up now" />
+                    <Button label="Back up now" onPress={() => runBackup()} disabled={backupBusy} accessibilityLabel="Back up now" />
                     <View style={{ height: space.sm }} />
-                    <GradientButton variant="ghost" label="Restore" onPress={() => setConfirmRestore(true)} accessibilityLabel="Restore" />
+                    <Button variant="ghost" label="Restore" onPress={() => setConfirmRestore(true)} accessibilityLabel="Restore" />
                   </>
                 )}
               </>
@@ -236,7 +236,7 @@ export function SettingsScreen({
                   Back up your data, end-to-end encrypted, and sync across devices. Premium.
                 </Text>
                 <View style={{ height: space.md }} />
-                <GradientButton
+                <Button
                   label="Back up & sync"
                   onPress={() => setAuthOpen(true)}
                   accessibilityLabel="Back up and sync"

@@ -1,14 +1,13 @@
 import React from "react";
 import { Text, StyleSheet, type StyleProp, type ViewStyle } from "react-native";
-import Svg, { Defs, LinearGradient, Stop, Rect } from "react-native-svg";
 import { PressableScale } from "./motion";
-import { colors, font, gradients, radius, space } from "./theme";
+import { colors, font, radius, space } from "./theme";
 
 type Variant = "primary" | "ghost" | "danger";
 
-// One button for the whole app. `primary` fills with the brand gradient,
-// `ghost` is a hairline outline, `danger` is a rose outline. Springs on press.
-export function GradientButton({
+// One button for the whole app. `primary` is solid off-white with ink text,
+// `ghost` is a hairline outline, `danger` is a desaturated red outline.
+export function Button({
   label,
   onPress,
   disabled = false,
@@ -23,7 +22,7 @@ export function GradientButton({
   variant?: Variant;
   style?: StyleProp<ViewStyle>;
 }) {
-  const primary = variant === "primary";
+  const primary = variant === "primary" && !disabled;
   return (
     <PressableScale
       onPress={disabled ? undefined : onPress}
@@ -31,26 +30,17 @@ export function GradientButton({
       accessibilityLabel={accessibilityLabel ?? label}
       style={[
         styles.btn,
+        primary && styles.primary,
         variant === "ghost" && styles.ghost,
         variant === "danger" && styles.danger,
         disabled && styles.disabled,
         style,
       ]}
     >
-      {primary && !disabled && (
-        <Svg style={StyleSheet.absoluteFill} width="100%" height="100%">
-          <Defs>
-            <LinearGradient id="btn-grad" x1="0" y1="0" x2="1" y2="1">
-              <Stop offset="0" stopColor={gradients.brand[0]} />
-              <Stop offset="1" stopColor={gradients.brand[1]} />
-            </LinearGradient>
-          </Defs>
-          <Rect x="0" y="0" width="100%" height="100%" rx={radius.card} fill="url(#btn-grad)" />
-        </Svg>
-      )}
       <Text
         style={[
           styles.label,
+          primary && styles.primaryLabel,
           variant === "danger" && styles.dangerLabel,
           disabled && styles.disabledLabel,
         ]}
@@ -68,12 +58,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.lg,
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
   },
+  primary: { backgroundColor: colors.text },
   ghost: { borderWidth: 1, borderColor: colors.hairlineStrong },
-  danger: { borderWidth: 1, borderColor: "rgba(255,111,135,0.4)" },
+  danger: { borderWidth: 1, borderColor: "rgba(217,122,112,0.4)" },
   disabled: { backgroundColor: colors.surfaceHi },
-  label: { color: "#FFFFFF", fontWeight: font.weight.semibold, fontSize: font.body, letterSpacing: 0.3 },
+  label: {
+    color: colors.text,
+    fontWeight: font.weight.semibold,
+    fontSize: font.body,
+    letterSpacing: 0.2,
+  },
+  primaryLabel: { color: colors.base },
   dangerLabel: { color: colors.danger },
   disabledLabel: { color: colors.muted },
 });

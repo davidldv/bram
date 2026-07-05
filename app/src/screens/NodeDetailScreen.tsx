@@ -6,7 +6,7 @@ import type { Entity, EntityType, LifeEvent } from "../core/types";
 import { Screen } from "../ui/Screen";
 import { Section } from "../ui/Section";
 import { Card } from "../ui/Card";
-import { GradientButton } from "../ui/GradientButton";
+import { Button } from "../ui/Button";
 import { PressableScale } from "../ui/motion";
 import { colors, font, radius, space } from "../ui/theme";
 
@@ -112,7 +112,7 @@ export function NodeDetailScreen({
                   placeholderTextColor={colors.muted}
                 />
                 {error !== "" && <Text style={styles.error}>{error}</Text>}
-                <GradientButton label="Save" onPress={save} disabled={!dirty} accessibilityLabel="Save name" />
+                <Button label="Save" onPress={save} disabled={!dirty} accessibilityLabel="Save name" />
               </Card>
             </Section>
 
@@ -150,7 +150,7 @@ export function NodeDetailScreen({
               </Card>
             </Section>
 
-            <GradientButton
+            <Button
               label="Delete"
               variant="danger"
               onPress={remove}
