@@ -182,6 +182,10 @@ const styles = StyleSheet.create({
 git rm src/ui/AuroraBackground.tsx
 ```
 
+Then delete the `baseElev` transitional alias from `src/ui/theme.ts` (Task 1 kept it
+solely because `AuroraBackground.tsx` still read it; this deletion removes its only
+consumer).
+
 - [ ] **Step 3: Drop `ambient` at the three call sites**
 
 In `src/screens/ConversationScreen.tsx`: `<Screen ambient>` → `<Screen>`.
@@ -1163,7 +1167,7 @@ git commit -m "feat(ui): graph in grey tiers — flat discs, quiet edges, mono l
 
 Run:
 ```bash
-grep -rn "planColor\|gradients\|accent2\|accentCyan\|colors\.reminder\|colors\.event\|colors\.task" src App.tsx
+grep -rn "planColor\|gradients\|accent2\|accentCyan\|baseElev\|colors\.reminder\|colors\.event\|colors\.task" src App.tsx
 ```
 Expected: matches only inside `src/ui/theme.ts` (the alias definitions themselves). If anything else matches, migrate it first — do not delete exports that are still consumed.
 
